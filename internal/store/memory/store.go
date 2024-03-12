@@ -32,3 +32,10 @@ func (s *Store) Set(key string, value string) error {
 	s.data[key] = value
 	return nil
 }
+
+func (s *Store) Delete(key string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	delete(s.data, key)
+	return nil
+}

@@ -26,4 +26,15 @@ func TestStore(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, "value", v)
 	})
+
+	t.Run("Delete", func(t *testing.T) {
+		err := s.Set("key", "value")
+		require.NoError(t, err)
+
+		err = s.Delete("key")
+		require.NoError(t, err)
+
+		_, err = s.Get("key")
+		require.ErrorIs(t, err, memory.ErrNotFound)
+	})
 }
