@@ -1,0 +1,8 @@
+bin/
+**/*.local
+*.csr
+*.key
+*.pem
+*.crt
+!*.test.crt
+!*.test.key
