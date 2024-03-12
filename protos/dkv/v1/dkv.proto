@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package dkv.v1;
+
+// Command is a message used in Raft to replicate log entries.
+message Command {
+  oneof command {
+    Set set = 1;
+    Delete delete = 2;
+  }
+}
+
+message Set {
+  string key = 1;
+  string value = 2;
+}
+
+message Delete { string key = 1; }
