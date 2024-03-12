@@ -45,6 +45,18 @@ ifeq ($(cfssljson),)
 cfssljson := $(shell go env GOPATH)/bin/cfssljson
 endif
 
+# Go lines formatter
+golines := $(shell which golines)
+ifeq ($(golines),)
+golines := $(shell go env GOPATH)/bin/golines
+endif
+
+# Go imports
+goimports := $(shell which goimports)
+ifeq ($(goimports),)
+goimports := $(shell go env GOPATH)/bin/goimports
+endif
+
 ###############################################################################
 # Build
 ###############################################################################
@@ -78,6 +90,12 @@ $(cfssl):
 
 $(cfssljson):
 	go install github.com/cloudflare/cfssl/cmd/cfssljson@latest
+
+$(golines):
+	go install github.com/segmentio/golines@latest
+
+$(goimports):
+	go install golang.org/x/tools/cmd/goimports@latest
 
 ###############################################################################
 # TLS
@@ -137,6 +155,11 @@ clean:
 protos: $(protoc-gen-go) $(protoc-gen-connect-go) $(buf)
 	$(buf) lint protos
 	$(buf) generate protos
+
+.PHONY: fmt
+fmt: $(golines) $(goimports)
+	$(golines) -w .
+	$(goimports) -w .
 
 .PHONY: version
 version:
