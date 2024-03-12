@@ -57,6 +57,12 @@ ifeq ($(goimports),)
 goimports := $(shell go env GOPATH)/bin/goimports
 endif
 
+# Mockery (mock generator)
+mockery := $(shell which mockery)
+ifeq ($(mockery),)
+mockery := $(shell go env GOPATH)/bin/mockery
+endif
+
 ###############################################################################
 # Build
 ###############################################################################
@@ -96,6 +102,9 @@ $(golines):
 
 $(goimports):
 	go install golang.org/x/tools/cmd/goimports@latest
+
+$(mockery):
+	go install github.com/vektra/mockery/v2@latest
 
 ###############################################################################
 # TLS
@@ -160,6 +169,10 @@ protos: $(protoc-gen-go) $(protoc-gen-connect-go) $(buf)
 fmt: $(golines) $(goimports)
 	$(golines) -w .
 	$(goimports) -w .
+
+.PHONY: mocks
+mocks:
+	$(mockery)
 
 .PHONY: version
 version:

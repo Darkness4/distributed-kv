@@ -39,3 +39,19 @@ func (s *Store) Delete(key string) error {
 	delete(s.data, key)
 	return nil
 }
+
+func (s *Store) Dump() map[string]string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	data := make(map[string]string, len(s.data))
+	for k, v := range s.data {
+		data[k] = v
+	}
+	return data
+}
+
+func (s *Store) Clear() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.data = make(map[string]string)
+}

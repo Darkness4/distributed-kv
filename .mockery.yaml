@@ -1,0 +1,9 @@
+with-expecter: true
+filename: '{{.InterfaceName}}_mock.go'
+dir: 'mocks/mock{{.PackageName}}'
+mockname: '{{.InterfaceName}}'
+outpkg: 'mock{{.PackageName}}'
+packages:
+  distributed-kv/internal/store/distributed:
+    interfaces:
+      Storer:
