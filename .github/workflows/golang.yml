@@ -86,7 +86,7 @@ jobs:
       - name: Build and export dev
         uses: docker/build-push-action@v5
         with:
-          file: Dockerfile.static
+          file: Dockerfile
           platforms: linux/amd64,linux/arm64,linux/riscv64
           push: true
           build-args: |
@@ -100,7 +100,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags')
         uses: docker/build-push-action@v5
         with:
-          file: Dockerfile.static
+          file: Dockerfile
           platforms: linux/amd64,linux/arm64,linux/riscv64
           push: true
           build-args: |
