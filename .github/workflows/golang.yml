@@ -87,12 +87,12 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           file: Dockerfile
-          platforms: linux/amd64,linux/arm64,linux/riscv64
+          platforms: linux/amd64,linux/arm64
           push: true
           build-args: |
             VERSION=dev
           tags: |
-            ghcr.io/darkness4/fc2-live-dl-go:dev
+            ghcr.io/darkness4/dkv:dev
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -101,12 +101,12 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           file: Dockerfile
-          platforms: linux/amd64,linux/arm64,linux/riscv64
+          platforms: linux/amd64,linux/arm64
           push: true
           build-args: |
             VERSION=${{ steps.get_version.outputs.VERSION }}
           tags: |
-            ghcr.io/darkness4/fc2-live-dl-go:latest
-            ghcr.io/darkness4/fc2-live-dl-go:${{ steps.get_version.outputs.OCI_VERSION }}
+            ghcr.io/darkness4/dkv:latest
+            ghcr.io/darkness4/dkv:${{ steps.get_version.outputs.OCI_VERSION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
