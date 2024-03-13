@@ -197,7 +197,7 @@ func (s *Store) Leave(id string) error {
 func (s *Store) WaitForLeader(timeout time.Duration) (raft.ServerID, error) {
 	slog.Info("waiting for leader", "timeout", timeout)
 	timeoutCh := time.After(timeout)
-	ticker := time.NewTicker(2 * time.Second)
+	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 	for {
 		select {
