@@ -1,7 +1,9 @@
 package distributed
 
 import (
+	"crypto/tls"
 	"distributed-kv/internal/raftpebble"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
@@ -14,7 +16,6 @@ import (
 
 const (
 	retainSnapshotCount = 2
-	raftTimeout         = 10 * time.Second
 )
 
 type Store struct {
@@ -25,26 +26,61 @@ type Store struct {
 
 	fsm  *FSM
 	raft *raft.Raft
+
+	StoreOptions
 }
 
-func NewStore(raftDir, raftBind string, storer Storer) *Store {
+type StoreOptions struct {
+	serverTLSConfig *tls.Config
+	clientTLSConfig *tls.Config
+	raftConfig      *raft.Config
+}
+
+type StoreOption func(*StoreOptions)
+
+func WithServerTLSConfig(config *tls.Config) StoreOption {
+	return func(o *StoreOptions) {
+		o.serverTLSConfig = config
+	}
+}
+
+func WithClientTLSConfig(config *tls.Config) StoreOption {
+	return func(o *StoreOptions) {
+		o.clientTLSConfig = config
+	}
+}
+
+func WithRaftConfig(config *raft.Config) StoreOption {
+	return func(o *StoreOptions) {
+		o.raftConfig = config
+	}
+}
+
+func applyStoreOptions(opts []StoreOption) StoreOptions {
+	options := StoreOptions{
+		raftConfig: raft.DefaultConfig(),
+	}
+	for _, o := range opts {
+		o(&options)
+	}
+	return options
+}
+
+func NewStore(raftDir, raftBind string, storer Storer, opts ...StoreOption) *Store {
+	o := applyStoreOptions(opts)
 	return &Store{
-		RaftDir:  raftDir,
-		RaftBind: raftBind,
-		fsm:      NewFSM(storer),
+		RaftDir:      raftDir,
+		RaftBind:     raftBind,
+		fsm:          NewFSM(storer),
+		StoreOptions: o,
 	}
 }
 
 func (s *Store) Open(localID string, bootstrap bool) error {
 	// Setup Raft configuration.
-	config := raft.DefaultConfig()
+	config := s.raftConfig
 	config.LocalID = raft.ServerID(localID)
 
-	// Setup Raft communication.
-	addr, err := net.ResolveTCPAddr("tcp", s.RaftBind)
-	if err != nil {
-		return err
-	}
 	// Create the snapshot store. This allows the Raft to truncate the log.
 	fss, err := raft.NewFileSnapshotStore(s.RaftDir, retainSnapshotCount, os.Stderr)
 	if err != nil {
@@ -62,10 +98,15 @@ func (s *Store) Open(localID string, bootstrap bool) error {
 	}
 
 	// Instantiate the transport.
-	transport, err := raft.NewTCPTransport(s.RaftBind, addr, 3, 10*time.Second, os.Stderr)
+	lis, err := net.Listen("tcp", s.RaftBind)
 	if err != nil {
 		return err
 	}
+	transport := raft.NewNetworkTransport(&TLSStreamLayer{
+		Listener:        lis,
+		ServerTLSConfig: s.serverTLSConfig,
+		ClientTLSConfig: s.clientTLSConfig,
+	}, 3, 10*time.Second, os.Stderr)
 
 	// Instantiate the Raft systems.
 	ra, err := raft.NewRaft(config, s.fsm, ldb, sdb, fss, transport)
@@ -102,4 +143,75 @@ func (s *Store) Open(localID string, bootstrap bool) error {
 		err = s.raft.BootstrapCluster(config).Error()
 	}
 	return err
+}
+
+func (s *Store) Join(id, addr string) error {
+	slog.Info("request node to join", "id", id, "addr", addr)
+
+	configFuture := s.raft.GetConfiguration()
+	if err := configFuture.Error(); err != nil {
+		slog.Error("failed to get raft configuration", "error", err)
+		return err
+	}
+	// Check if the server has already joined
+	for _, srv := range configFuture.Configuration().Servers {
+		// If a node already exists with either the joining node's ID or address,
+		// that node may need to be removed from the config first.
+		if srv.ID == raft.ServerID(id) || srv.Address == raft.ServerAddress(addr) {
+			// However if *both* the ID and the address are the same, then nothing -- not even
+			// a join operation -- is needed.
+			if srv.Address == raft.ServerAddress(addr) && srv.ID == raft.ServerID(id) {
+				slog.Info(
+					"node already member of cluster, ignoring join request",
+					"id",
+					id,
+					"addr",
+					addr,
+				)
+				return nil
+			}
+
+			if err := s.raft.RemoveServer(raft.ServerID(id), 0, 0).Error(); err != nil {
+				return fmt.Errorf("error removing existing node %s at %s: %s", id, addr, err)
+			}
+		}
+	}
+
+	// Add the new server
+	return s.raft.AddVoter(raft.ServerID(id), raft.ServerAddress(addr), 0, 0).Error()
+}
+
+func (s *Store) Leave(id string) error {
+	slog.Info("request node to leave", "id", id)
+	return s.raft.RemoveServer(raft.ServerID(id), 0, 0).Error()
+}
+
+func (s *Store) WaitForLeader(timeout time.Duration) error {
+	slog.Info("waiting for leader", "timeout", timeout)
+	timeoutCh := time.After(timeout)
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-timeoutCh:
+			return errors.New("timed out waiting for leader")
+		case <-ticker.C:
+			addr, id := s.raft.LeaderWithID()
+			if addr != "" {
+				slog.Info("leader found", "addr", addr, "id", id)
+				return nil
+			}
+		}
+	}
+}
+
+func (s *Store) Shutdown() error {
+	if s.raft != nil {
+		if err := s.raft.Shutdown().Error(); err != nil {
+			return err
+		}
+		s.raft = nil
+	}
+	s.fsm.storer.Clear()
+	return nil
 }
