@@ -7,3 +7,6 @@ packages:
   distributed-kv/internal/store/distributed:
     interfaces:
       Storer:
+  distributed-kv/internal/store:
+    interfaces:
+      Store:

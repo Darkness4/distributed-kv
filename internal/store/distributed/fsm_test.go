@@ -32,7 +32,7 @@ func TestFSM(t *testing.T) {
 				title: "Set",
 				command: &dkvv1.Command{
 					Command: &dkvv1.Command_Set{
-						Set: &dkvv1.Set{
+						Set: &dkvv1.SetRequest{
 							Key:   "key",
 							Value: "value",
 						},
@@ -49,7 +49,7 @@ func TestFSM(t *testing.T) {
 				title: "Delete",
 				command: &dkvv1.Command{
 					Command: &dkvv1.Command_Delete{
-						Delete: &dkvv1.Delete{
+						Delete: &dkvv1.DeleteRequest{
 							Key: "key",
 						},
 					},

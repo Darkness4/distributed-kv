@@ -5,14 +5,25 @@ package dkv.v1;
 // Command is a message used in Raft to replicate log entries.
 message Command {
   oneof command {
-    Set set = 1;
-    Delete delete = 2;
+    SetRequest set = 1;
+    DeleteRequest delete = 2;
   }
 }
 
-message Set {
+service DkvAPI {
+  rpc Get(GetRequest) returns (GetResponse);
+  rpc Set(SetRequest) returns (SetResponse);
+  rpc Delete(DeleteRequest) returns (DeleteResponse);
+}
+
+message GetRequest { string key = 1; }
+message GetResponse { string value = 1; }
+
+message SetRequest {
   string key = 1;
   string value = 2;
 }
+message SetResponse {}
 
-message Delete { string key = 1; }
+message DeleteRequest { string key = 1; }
+message DeleteResponse {}

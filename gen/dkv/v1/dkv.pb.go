@@ -72,14 +72,14 @@ func (m *Command) GetCommand() isCommand_Command {
 	return nil
 }
 
-func (x *Command) GetSet() *Set {
+func (x *Command) GetSet() *SetRequest {
 	if x, ok := x.GetCommand().(*Command_Set); ok {
 		return x.Set
 	}
 	return nil
 }
 
-func (x *Command) GetDelete() *Delete {
+func (x *Command) GetDelete() *DeleteRequest {
 	if x, ok := x.GetCommand().(*Command_Delete); ok {
 		return x.Delete
 	}
@@ -91,28 +91,27 @@ type isCommand_Command interface {
 }
 
 type Command_Set struct {
-	Set *Set `protobuf:"bytes,1,opt,name=set,proto3,oneof"`
+	Set *SetRequest `protobuf:"bytes,1,opt,name=set,proto3,oneof"`
 }
 
 type Command_Delete struct {
-	Delete *Delete `protobuf:"bytes,2,opt,name=delete,proto3,oneof"`
+	Delete *DeleteRequest `protobuf:"bytes,2,opt,name=delete,proto3,oneof"`
 }
 
 func (*Command_Set) isCommand_Command() {}
 
 func (*Command_Delete) isCommand_Command() {}
 
-type Set struct {
+type GetRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Key   string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Value string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 }
 
-func (x *Set) Reset() {
-	*x = Set{}
+func (x *GetRequest) Reset() {
+	*x = GetRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_dkv_v1_dkv_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -120,13 +119,13 @@ func (x *Set) Reset() {
 	}
 }
 
-func (x *Set) String() string {
+func (x *GetRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Set) ProtoMessage() {}
+func (*GetRequest) ProtoMessage() {}
 
-func (x *Set) ProtoReflect() protoreflect.Message {
+func (x *GetRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_dkv_v1_dkv_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -138,35 +137,28 @@ func (x *Set) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Set.ProtoReflect.Descriptor instead.
-func (*Set) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetRequest.ProtoReflect.Descriptor instead.
+func (*GetRequest) Descriptor() ([]byte, []int) {
 	return file_dkv_v1_dkv_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *Set) GetKey() string {
+func (x *GetRequest) GetKey() string {
 	if x != nil {
 		return x.Key
 	}
 	return ""
 }
 
-func (x *Set) GetValue() string {
-	if x != nil {
-		return x.Value
-	}
-	return ""
-}
-
-type Delete struct {
+type GetResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value string `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
 }
 
-func (x *Delete) Reset() {
-	*x = Delete{}
+func (x *GetResponse) Reset() {
+	*x = GetResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_dkv_v1_dkv_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -174,13 +166,13 @@ func (x *Delete) Reset() {
 	}
 }
 
-func (x *Delete) String() string {
+func (x *GetResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Delete) ProtoMessage() {}
+func (*GetResponse) ProtoMessage() {}
 
-func (x *Delete) ProtoReflect() protoreflect.Message {
+func (x *GetResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_dkv_v1_dkv_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -192,41 +184,238 @@ func (x *Delete) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Delete.ProtoReflect.Descriptor instead.
-func (*Delete) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetResponse.ProtoReflect.Descriptor instead.
+func (*GetResponse) Descriptor() ([]byte, []int) {
 	return file_dkv_v1_dkv_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *Delete) GetKey() string {
+func (x *GetResponse) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+type SetRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Key   string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *SetRequest) Reset() {
+	*x = SetRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_dkv_v1_dkv_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SetRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetRequest) ProtoMessage() {}
+
+func (x *SetRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_dkv_v1_dkv_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetRequest.ProtoReflect.Descriptor instead.
+func (*SetRequest) Descriptor() ([]byte, []int) {
+	return file_dkv_v1_dkv_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *SetRequest) GetKey() string {
 	if x != nil {
 		return x.Key
 	}
 	return ""
 }
 
+func (x *SetRequest) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+type SetResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *SetResponse) Reset() {
+	*x = SetResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_dkv_v1_dkv_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SetResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetResponse) ProtoMessage() {}
+
+func (x *SetResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_dkv_v1_dkv_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetResponse.ProtoReflect.Descriptor instead.
+func (*SetResponse) Descriptor() ([]byte, []int) {
+	return file_dkv_v1_dkv_proto_rawDescGZIP(), []int{4}
+}
+
+type DeleteRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+}
+
+func (x *DeleteRequest) Reset() {
+	*x = DeleteRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_dkv_v1_dkv_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteRequest) ProtoMessage() {}
+
+func (x *DeleteRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_dkv_v1_dkv_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteRequest.ProtoReflect.Descriptor instead.
+func (*DeleteRequest) Descriptor() ([]byte, []int) {
+	return file_dkv_v1_dkv_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *DeleteRequest) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+type DeleteResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *DeleteResponse) Reset() {
+	*x = DeleteResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_dkv_v1_dkv_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteResponse) ProtoMessage() {}
+
+func (x *DeleteResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_dkv_v1_dkv_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteResponse.ProtoReflect.Descriptor instead.
+func (*DeleteResponse) Descriptor() ([]byte, []int) {
+	return file_dkv_v1_dkv_proto_rawDescGZIP(), []int{6}
+}
+
 var File_dkv_v1_dkv_proto protoreflect.FileDescriptor
 
 var file_dkv_v1_dkv_proto_rawDesc = []byte{
 	0x0a, 0x10, 0x64, 0x6b, 0x76, 0x2f, 0x76, 0x31, 0x2f, 0x64, 0x6b, 0x76, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x12, 0x06, 0x64, 0x6b, 0x76, 0x2e, 0x76, 0x31, 0x22, 0x5f, 0x0a, 0x07, 0x43, 0x6f,
-	0x6d, 0x6d, 0x61, 0x6e, 0x64, 0x12, 0x1f, 0x0a, 0x03, 0x73, 0x65, 0x74, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x64, 0x6b, 0x76, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x65, 0x74, 0x48,
-	0x00, 0x52, 0x03, 0x73, 0x65, 0x74, 0x12, 0x28, 0x0a, 0x06, 0x64, 0x65, 0x6c, 0x65, 0x74, 0x65,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x64, 0x6b, 0x76, 0x2e, 0x76, 0x31, 0x2e,
-	0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x48, 0x00, 0x52, 0x06, 0x64, 0x65, 0x6c, 0x65, 0x74, 0x65,
-	0x42, 0x09, 0x0a, 0x07, 0x63, 0x6f, 0x6d, 0x6d, 0x61, 0x6e, 0x64, 0x22, 0x2d, 0x0a, 0x03, 0x53,
-	0x65, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x1a, 0x0a, 0x06, 0x44, 0x65,
-	0x6c, 0x65, 0x74, 0x65, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x42, 0x70, 0x0a, 0x0a, 0x63, 0x6f, 0x6d, 0x2e, 0x64, 0x6b,
-	0x76, 0x2e, 0x76, 0x31, 0x42, 0x08, 0x44, 0x6b, 0x76, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01,
-	0x5a, 0x1f, 0x64, 0x69, 0x73, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x64, 0x2d, 0x6b, 0x76,
-	0x2f, 0x67, 0x65, 0x6e, 0x2f, 0x64, 0x6b, 0x76, 0x2f, 0x76, 0x31, 0x3b, 0x64, 0x6b, 0x76, 0x76,
-	0x31, 0xa2, 0x02, 0x03, 0x44, 0x58, 0x58, 0xaa, 0x02, 0x06, 0x44, 0x6b, 0x76, 0x2e, 0x56, 0x31,
-	0xca, 0x02, 0x06, 0x44, 0x6b, 0x76, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x12, 0x44, 0x6b, 0x76, 0x5c,
-	0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02,
-	0x07, 0x44, 0x6b, 0x76, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x74, 0x6f, 0x12, 0x06, 0x64, 0x6b, 0x76, 0x2e, 0x76, 0x31, 0x22, 0x6d, 0x0a, 0x07, 0x43, 0x6f,
+	0x6d, 0x6d, 0x61, 0x6e, 0x64, 0x12, 0x26, 0x0a, 0x03, 0x73, 0x65, 0x74, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x12, 0x2e, 0x64, 0x6b, 0x76, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x65, 0x74, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x48, 0x00, 0x52, 0x03, 0x73, 0x65, 0x74, 0x12, 0x2f, 0x0a,
+	0x06, 0x64, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e,
+	0x64, 0x6b, 0x76, 0x2e, 0x76, 0x31, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x48, 0x00, 0x52, 0x06, 0x64, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x42, 0x09,
+	0x0a, 0x07, 0x63, 0x6f, 0x6d, 0x6d, 0x61, 0x6e, 0x64, 0x22, 0x1e, 0x0a, 0x0a, 0x47, 0x65, 0x74,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x22, 0x23, 0x0a, 0x0b, 0x47, 0x65, 0x74,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75,
+	0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x34,
+	0x0a, 0x0a, 0x53, 0x65, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x10, 0x0a, 0x03,
+	0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14,
+	0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76,
+	0x61, 0x6c, 0x75, 0x65, 0x22, 0x0d, 0x0a, 0x0b, 0x53, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x22, 0x21, 0x0a, 0x0d, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x22, 0x10, 0x0a, 0x0e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x32, 0xa1, 0x01, 0x0a, 0x06, 0x44, 0x6b, 0x76,
+	0x41, 0x50, 0x49, 0x12, 0x2e, 0x0a, 0x03, 0x47, 0x65, 0x74, 0x12, 0x12, 0x2e, 0x64, 0x6b, 0x76,
+	0x2e, 0x76, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x13,
+	0x2e, 0x64, 0x6b, 0x76, 0x2e, 0x76, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x12, 0x2e, 0x0a, 0x03, 0x53, 0x65, 0x74, 0x12, 0x12, 0x2e, 0x64, 0x6b, 0x76,
+	0x2e, 0x76, 0x31, 0x2e, 0x53, 0x65, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x13,
+	0x2e, 0x64, 0x6b, 0x76, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x12, 0x37, 0x0a, 0x06, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x12, 0x15, 0x2e,
+	0x64, 0x6b, 0x76, 0x2e, 0x76, 0x31, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x64, 0x6b, 0x76, 0x2e, 0x76, 0x31, 0x2e, 0x44, 0x65,
+	0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x70, 0x0a, 0x0a,
+	0x63, 0x6f, 0x6d, 0x2e, 0x64, 0x6b, 0x76, 0x2e, 0x76, 0x31, 0x42, 0x08, 0x44, 0x6b, 0x76, 0x50,
+	0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x1f, 0x64, 0x69, 0x73, 0x74, 0x72, 0x69, 0x62, 0x75,
+	0x74, 0x65, 0x64, 0x2d, 0x6b, 0x76, 0x2f, 0x67, 0x65, 0x6e, 0x2f, 0x64, 0x6b, 0x76, 0x2f, 0x76,
+	0x31, 0x3b, 0x64, 0x6b, 0x76, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x44, 0x58, 0x58, 0xaa, 0x02, 0x06,
+	0x44, 0x6b, 0x76, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x06, 0x44, 0x6b, 0x76, 0x5c, 0x56, 0x31, 0xe2,
+	0x02, 0x12, 0x44, 0x6b, 0x76, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61,
+	0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x07, 0x44, 0x6b, 0x76, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -241,17 +430,27 @@ func file_dkv_v1_dkv_proto_rawDescGZIP() []byte {
 	return file_dkv_v1_dkv_proto_rawDescData
 }
 
-var file_dkv_v1_dkv_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_dkv_v1_dkv_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_dkv_v1_dkv_proto_goTypes = []interface{}{
-	(*Command)(nil), // 0: dkv.v1.Command
-	(*Set)(nil),     // 1: dkv.v1.Set
-	(*Delete)(nil),  // 2: dkv.v1.Delete
+	(*Command)(nil),        // 0: dkv.v1.Command
+	(*GetRequest)(nil),     // 1: dkv.v1.GetRequest
+	(*GetResponse)(nil),    // 2: dkv.v1.GetResponse
+	(*SetRequest)(nil),     // 3: dkv.v1.SetRequest
+	(*SetResponse)(nil),    // 4: dkv.v1.SetResponse
+	(*DeleteRequest)(nil),  // 5: dkv.v1.DeleteRequest
+	(*DeleteResponse)(nil), // 6: dkv.v1.DeleteResponse
 }
 var file_dkv_v1_dkv_proto_depIdxs = []int32{
-	1, // 0: dkv.v1.Command.set:type_name -> dkv.v1.Set
-	2, // 1: dkv.v1.Command.delete:type_name -> dkv.v1.Delete
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
+	3, // 0: dkv.v1.Command.set:type_name -> dkv.v1.SetRequest
+	5, // 1: dkv.v1.Command.delete:type_name -> dkv.v1.DeleteRequest
+	1, // 2: dkv.v1.DkvAPI.Get:input_type -> dkv.v1.GetRequest
+	3, // 3: dkv.v1.DkvAPI.Set:input_type -> dkv.v1.SetRequest
+	5, // 4: dkv.v1.DkvAPI.Delete:input_type -> dkv.v1.DeleteRequest
+	2, // 5: dkv.v1.DkvAPI.Get:output_type -> dkv.v1.GetResponse
+	4, // 6: dkv.v1.DkvAPI.Set:output_type -> dkv.v1.SetResponse
+	6, // 7: dkv.v1.DkvAPI.Delete:output_type -> dkv.v1.DeleteResponse
+	5, // [5:8] is the sub-list for method output_type
+	2, // [2:5] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
 	2, // [2:2] is the sub-list for extension extendee
 	0, // [0:2] is the sub-list for field type_name
@@ -276,7 +475,7 @@ func file_dkv_v1_dkv_proto_init() {
 			}
 		}
 		file_dkv_v1_dkv_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Set); i {
+			switch v := v.(*GetRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -288,7 +487,55 @@ func file_dkv_v1_dkv_proto_init() {
 			}
 		}
 		file_dkv_v1_dkv_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Delete); i {
+			switch v := v.(*GetResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_dkv_v1_dkv_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SetRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_dkv_v1_dkv_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SetResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_dkv_v1_dkv_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DeleteRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_dkv_v1_dkv_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DeleteResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -310,9 +557,9 @@ func file_dkv_v1_dkv_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_dkv_v1_dkv_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   7,
 			NumExtensions: 0,
-			NumServices:   0,
+			NumServices:   1,
 		},
 		GoTypes:           file_dkv_v1_dkv_proto_goTypes,
 		DependencyIndexes: file_dkv_v1_dkv_proto_depIdxs,

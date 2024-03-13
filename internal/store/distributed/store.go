@@ -252,7 +252,7 @@ func (s *Store) apply(req *dkvv1.Command) (any, error) {
 func (s *Store) Set(key string, value string) error {
 	_, err := s.apply(&dkvv1.Command{
 		Command: &dkvv1.Command_Set{
-			Set: &dkvv1.Set{
+			Set: &dkvv1.SetRequest{
 				Key:   key,
 				Value: value,
 			},
@@ -264,7 +264,7 @@ func (s *Store) Set(key string, value string) error {
 func (s *Store) Delete(key string) error {
 	_, err := s.apply(&dkvv1.Command{
 		Command: &dkvv1.Command_Delete{
-			Delete: &dkvv1.Delete{
+			Delete: &dkvv1.DeleteRequest{
 				Key: key,
 			},
 		},
