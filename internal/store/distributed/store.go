@@ -79,7 +79,7 @@ func NewStore(raftDir, raftBind, raftID string, storer Storer, opts ...StoreOpti
 		RaftBind:     raftBind,
 		RaftID:       raftID,
 		fsm:          NewFSM(storer),
-		shutdownCh:   make(chan struct{}, 1),
+		shutdownCh:   make(chan struct{}),
 		StoreOptions: o,
 	}
 }
