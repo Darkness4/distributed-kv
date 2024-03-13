@@ -142,6 +142,62 @@ func (_c *Storer_Dump_Call) RunAndReturn(run func() map[string]string) *Storer_D
 	return _c
 }
 
+// Get provides a mock function with given fields: key
+func (_m *Storer) Get(key string) (string, error) {
+	ret := _m.Called(key)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Get")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (string, error)); ok {
+		return rf(key)
+	}
+	if rf, ok := ret.Get(0).(func(string) string); ok {
+		r0 = rf(key)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(key)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Storer_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
+type Storer_Get_Call struct {
+	*mock.Call
+}
+
+// Get is a helper method to define mock.On call
+//   - key string
+func (_e *Storer_Expecter) Get(key interface{}) *Storer_Get_Call {
+	return &Storer_Get_Call{Call: _e.mock.On("Get", key)}
+}
+
+func (_c *Storer_Get_Call) Run(run func(key string)) *Storer_Get_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *Storer_Get_Call) Return(_a0 string, _a1 error) *Storer_Get_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Storer_Get_Call) RunAndReturn(run func(string) (string, error)) *Storer_Get_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Set provides a mock function with given fields: key, value
 func (_m *Storer) Set(key string, value string) error {
 	ret := _m.Called(key, value)

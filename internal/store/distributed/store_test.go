@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/raft"
 	"github.com/stretchr/testify/require"
 )
 
@@ -34,17 +35,21 @@ func TestStore(t *testing.T) {
 		})
 		p := getRandomPort(t)
 		store := memory.New()
-		s := distributed.NewStore(tmp, p, store)
+		s := distributed.NewStore(tmp, p, "node1", store)
 		t.Cleanup(func() {
 			err = s.Shutdown()
 			require.NoError(t, err)
 		})
 
 		// Act
-		err = s.Open("node1", true)
+		err = s.Open(true)
 
 		// Assert
 		require.NoError(t, err)
+
+		id, err := s.WaitForLeader(5 * time.Second)
+		require.NoError(t, err)
+		require.Equal(t, raft.ServerID("node1"), id)
 	})
 
 	t.Run("Consensus", func(t *testing.T) {
@@ -60,7 +65,7 @@ func TestStore(t *testing.T) {
 			})
 			p := getRandomPort(t)
 			store := memory.New()
-			s := distributed.NewStore(tmp, p, store)
+			s := distributed.NewStore(tmp, p, fmt.Sprintf("node%d", i), store)
 			t.Cleanup(func() {
 				err = s.Shutdown()
 				require.NoError(t, err)
@@ -71,7 +76,7 @@ func TestStore(t *testing.T) {
 		t.Run("Join and Bootstrap", func(t *testing.T) {
 			for i := 0; i < nodes; i++ {
 				s := stores[i]
-				err := s.Open(fmt.Sprintf("node%d", i), i == 0)
+				err := s.Open(i == 0)
 				require.NoError(t, err)
 
 				// Act & assert
@@ -79,14 +84,119 @@ func TestStore(t *testing.T) {
 					err = stores[0].Join(fmt.Sprintf("node%d", i), s.RaftBind)
 					require.NoError(t, err)
 				} else {
-					err = s.WaitForLeader(5 * time.Second)
+					id, err := s.WaitForLeader(5 * time.Second)
 					require.NoError(t, err)
+					require.Equal(t, raft.ServerID("node0"), id)
 				}
 			}
 		})
 
-		// t.Run("Set/Get", func(t *testing.T) {
-		// 	stores[0].
-		// })
+		t.Run("Set and Get", func(t *testing.T) {
+			t.Run("Set a key", func(t *testing.T) {
+				// Act: Set a key
+				err := stores[0].Set("key1", "value1")
+				require.NoError(t, err)
+
+				// Assert: Get the key from all nodes
+				require.Eventually(t, func() bool {
+					for i := 0; i < nodes; i++ {
+						got, err := stores[i].Get("key1")
+						if err != nil {
+							return false
+						}
+						if got != "value1" {
+							return false
+						}
+					}
+					return true
+				}, 500*time.Millisecond, 50*time.Millisecond)
+			})
+
+			t.Run("Set a key with node1 kicked out", func(t *testing.T) {
+				// Act
+				err := stores[0].Leave("node1")
+				require.NoError(t, err)
+
+				time.Sleep(50 * time.Millisecond)
+
+				err = stores[0].Set("key1", "value2")
+				require.NoError(t, err)
+
+				// Assert
+				require.Eventually(t, func() bool {
+					for i := 0; i < nodes; i++ {
+						if i == 1 {
+							got, err := stores[i].Get("key1")
+							if err != nil {
+								return false
+							}
+							if got != "value1" {
+								return false
+							}
+						} else {
+							got, err := stores[i].Get("key1")
+							if err != nil {
+								return false
+							}
+							if got != "value2" {
+								return false
+							}
+						}
+					}
+					return true
+				}, 500*time.Millisecond, 50*time.Millisecond)
+			})
+
+			// Act: Set the key again, but with node1 back in (convergence test)
+			t.Run("Set a key with node1 back in", func(t *testing.T) {
+				err := stores[0].Join("node1", stores[1].RaftBind)
+				require.NoError(t, err)
+
+				time.Sleep(50 * time.Millisecond)
+
+				got, err := stores[1].Get("key1")
+				require.NoError(t, err)
+				require.Equal(t, "value2", got)
+			})
+
+			// Act: Set the key again, but with node0 shutdown (fault tolerence test)
+			t.Run("Set a key with node0 shutdown", func(t *testing.T) {
+				err := stores[0].Shutdown()
+				require.NoError(t, err)
+
+				var nextLeader string
+				require.Eventually(t, func() bool {
+					id, err := stores[1].WaitForLeader(15 * time.Second)
+					require.NoError(t, err)
+
+					nextLeader = string(id)
+
+					return id != "node0"
+				}, 15*time.Second, 1*time.Second)
+
+				var leader *distributed.Store
+				for _, s := range stores {
+					if s.RaftID == nextLeader {
+						leader = s
+					}
+				}
+
+				err = leader.Set("key1", "value3")
+				require.NoError(t, err)
+
+				require.Eventually(t, func() bool {
+					for i := 1; i < nodes; i++ {
+						got, err := stores[i].Get("key1")
+						if err != nil {
+							return false
+						}
+						if got != "value3" {
+							return false
+						}
+					}
+					return true
+				}, 500*time.Millisecond, 50*time.Millisecond)
+			})
+		})
 	})
 }

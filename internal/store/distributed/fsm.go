@@ -13,6 +13,7 @@ import (
 var _ raft.FSM = (*FSM)(nil)
 
 type Storer interface {
+	Get(key string) (string, error)
 	Delete(key string) error
 	Set(key, value string) error
 	Dump() map[string]string

@@ -2,6 +2,7 @@ package distributed
 
 import (
 	"crypto/tls"
+	dkvv1 "distributed-kv/gen/dkv/v1"
 	"distributed-kv/internal/raftpebble"
 	"errors"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/raft"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -23,9 +25,13 @@ type Store struct {
 	RaftDir string
 	// RaftBind is the address to bind the Raft server.
 	RaftBind string
+	// RaftID is the ID of the local node.
+	RaftID string
 
 	fsm  *FSM
 	raft *raft.Raft
+
+	shutdownCh chan struct{}
 
 	StoreOptions
 }
@@ -66,20 +72,22 @@ func applyStoreOptions(opts []StoreOption) StoreOptions {
 	return options
 }
 
-func NewStore(raftDir, raftBind string, storer Storer, opts ...StoreOption) *Store {
+func NewStore(raftDir, raftBind, raftID string, storer Storer, opts ...StoreOption) *Store {
 	o := applyStoreOptions(opts)
 	return &Store{
 		RaftDir:      raftDir,
 		RaftBind:     raftBind,
+		RaftID:       raftID,
 		fsm:          NewFSM(storer),
+		shutdownCh:   make(chan struct{}, 1),
 		StoreOptions: o,
 	}
 }
 
-func (s *Store) Open(localID string, bootstrap bool) error {
+func (s *Store) Open(bootstrap bool) error {
 	// Setup Raft configuration.
 	config := s.raftConfig
-	config.LocalID = raft.ServerID(localID)
+	config.LocalID = raft.ServerID(s.RaftID)
 
 	// Create the snapshot store. This allows the Raft to truncate the log.
 	fss, err := raft.NewFileSnapshotStore(s.RaftDir, retainSnapshotCount, os.Stderr)
@@ -186,26 +194,34 @@ func (s *Store) Leave(id string) error {
 	return s.raft.RemoveServer(raft.ServerID(id), 0, 0).Error()
 }
 
-func (s *Store) WaitForLeader(timeout time.Duration) error {
+func (s *Store) WaitForLeader(timeout time.Duration) (raft.ServerID, error) {
 	slog.Info("waiting for leader", "timeout", timeout)
 	timeoutCh := time.After(timeout)
-	ticker := time.NewTicker(time.Second)
+	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
 	for {
 		select {
+		case <-s.shutdownCh:
+			return "", errors.New("shutdown")
 		case <-timeoutCh:
-			return errors.New("timed out waiting for leader")
+			return "", errors.New("timed out waiting for leader")
 		case <-ticker.C:
 			addr, id := s.raft.LeaderWithID()
 			if addr != "" {
 				slog.Info("leader found", "addr", addr, "id", id)
-				return nil
+				return id, nil
 			}
 		}
 	}
 }
 
 func (s *Store) Shutdown() error {
+	slog.Warn("shutting down store")
+	select {
+	case s.shutdownCh <- struct{}{}:
+	default:
+	}
+
 	if s.raft != nil {
 		if err := s.raft.Shutdown().Error(); err != nil {
 			return err
@@ -214,4 +230,48 @@ func (s *Store) Shutdown() error {
 	}
 	s.fsm.storer.Clear()
 	return nil
+}
+
+func (s *Store) apply(req *dkvv1.Command) (any, error) {
+	b, err := proto.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+	timeout := 10 * time.Second
+	future := s.raft.Apply(b, timeout)
+	if future.Error() != nil {
+		return nil, future.Error()
+	}
+	res := future.Response()
+	if err, ok := res.(error); ok {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (s *Store) Set(key string, value string) error {
+	_, err := s.apply(&dkvv1.Command{
+		Command: &dkvv1.Command_Set{
+			Set: &dkvv1.Set{
+				Key:   key,
+				Value: value,
+			},
+		},
+	})
+	return err
+}
+
+func (s *Store) Delete(key string) error {
+	_, err := s.apply(&dkvv1.Command{
+		Command: &dkvv1.Command_Delete{
+			Delete: &dkvv1.Delete{
+				Key: key,
+			},
+		},
+	})
+	return err
+}
+
+func (s *Store) Get(key string) (string, error) {
+	return s.fsm.storer.Get(key)
 }
