@@ -1,0 +1,5 @@
+smoke-tests/
+certs/
+bin/
+.github/
+.git/

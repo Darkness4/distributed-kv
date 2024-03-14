@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registry
+spec:
+  selector:
+    matchLabels:
+      app: registry
+  template:
+    metadata:
+      labels:
+        app: registry
+    spec:
+      containers:
+        - name: registry
+          image: registry:2
+          resources:
+            limits:
+              memory: '128Mi'
+              cpu: '500m'
+          ports:
+            - containerPort: 5000
+              name: http

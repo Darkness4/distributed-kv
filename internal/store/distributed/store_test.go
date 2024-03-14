@@ -3,6 +3,7 @@ package distributed_test
 import (
 	"distributed-kv/internal/store/distributed"
 	"distributed-kv/internal/store/memory"
+	internaltls "distributed-kv/internal/tls"
 	"fmt"
 	"net"
 	"os"
@@ -13,14 +14,22 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func getRandomPort(t *testing.T) string {
+const (
+	caCert   = "certs/ca/tls.test.crt"
+	peerCert = "certs/peer/tls.test.crt"
+	peerKey  = "certs/peer/tls.test.key"
+)
+
+func getRandomAddress(t *testing.T) string {
 	t.Helper()
 
 	l, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
 	defer l.Close()
 
-	return l.Addr().String()
+	_, port, err := net.SplitHostPort(l.Addr().String())
+	require.NoError(t, err)
+	return net.JoinHostPort("localhost", port)
 }
 
 func TestStore(t *testing.T) {
@@ -33,9 +42,9 @@ func TestStore(t *testing.T) {
 		t.Cleanup(func() {
 			_ = os.RemoveAll(tmp)
 		})
-		p := getRandomPort(t)
+		addr := getRandomAddress(t)
 		store := memory.New()
-		s := distributed.NewStore(tmp, p, "node1", store)
+		s := distributed.NewStore(tmp, addr, "node1", store)
 		t.Cleanup(func() {
 			err = s.Shutdown()
 			require.NoError(t, err)
@@ -63,9 +72,25 @@ func TestStore(t *testing.T) {
 			t.Cleanup(func() {
 				_ = os.RemoveAll(tmp)
 			})
-			p := getRandomPort(t)
+			addr := getRandomAddress(t)
 			store := memory.New()
-			s := distributed.NewStore(tmp, p, fmt.Sprintf("node%d", i), store)
+			peerServerTLSConfig, err := internaltls.SetupServerTLSConfig(peerCert, peerKey, caCert)
+			require.NoError(t, err)
+			peerClientTLSConfig, err := internaltls.SetupClientTLSConfig(
+				peerCert,
+				peerKey,
+				caCert,
+				"localhost",
+			)
+			require.NoError(t, err)
+			s := distributed.NewStore(
+				tmp,
+				addr,
+				fmt.Sprintf("node%d", i),
+				store,
+				distributed.WithClientTLSConfig(peerClientTLSConfig),
+				distributed.WithServerTLSConfig(peerServerTLSConfig),
+			)
 			t.Cleanup(func() {
 				err = s.Shutdown()
 				require.NoError(t, err)

@@ -1,8 +1,4 @@
 # ---
-FROM --platform=$BUILDPLATFORM registry-1.docker.io/library/alpine:latest as certs
-RUN apk update && apk add --no-cache ca-certificates
-
-# ---
 FROM --platform=$BUILDPLATFORM registry-1.docker.io/library/golang:1.22-alpine as builder
 
 WORKDIR /build/
@@ -29,7 +25,6 @@ RUN addgroup -S app && adduser -S -G app app
 WORKDIR /app
 
 COPY --from=builder /build/dkv .
-COPY --from=certs /etc/ssl/certs /etc/ssl/certs
 
 RUN chown -R app:app .
 USER app

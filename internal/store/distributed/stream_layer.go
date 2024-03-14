@@ -27,22 +27,11 @@ func (s *TLSStreamLayer) Accept() (net.Conn, error) {
 	return conn, nil
 }
 
-func (s *TLSStreamLayer) Addr() net.Addr {
-	return s.Listener.Addr()
-}
-
-func (s *TLSStreamLayer) Close() error {
-	return s.Listener.Close()
-}
-
 func (s *TLSStreamLayer) Dial(address raft.ServerAddress, timeout time.Duration) (net.Conn, error) {
 	dialer := &net.Dialer{Timeout: timeout}
-	var conn, err = dialer.Dial("tcp", string(address))
-	if err != nil {
-		return nil, err
+	if s.ClientTLSConfig == nil {
+		return dialer.Dial("tcp", string(address))
+	} else {
+		return tls.DialWithDialer(dialer, "tcp", string(address), s.ClientTLSConfig)
 	}
-	if s.ClientTLSConfig != nil {
-		conn = tls.Client(conn, s.ClientTLSConfig)
-	}
-	return conn, err
 }

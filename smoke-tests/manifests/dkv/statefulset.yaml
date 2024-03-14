@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: dkv
+spec:
+  selector:
+    matchLabels:
+      app: dkv
+  serviceName: dkv
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: dkv
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchLabels:
+              app: dkv
+          whenUnsatisfiable: DoNotSchedule
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: dkv
+          image: localhost:30000/library/dkv:latest
+          imagePullPolicy: Always
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+          ports:
+            - containerPort: 2380
+              name: raft
+            - containerPort: 3000
+              name: http
+          env:
+            - name: DKV_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: DKV_INITIAL_CLUSTER
+              value: dkv-0=dkv-0.dkv.default.svc.cluster.local:2380,dkv-1=dkv-1.dkv.default.svc.cluster.local:2380,dkv-2=dkv-2.dkv.default.svc.cluster.local:2380
+            - name: DKV_INITIAL_CLUSTER_STATE
+              value: new
+            - name: DKV_PEER_CERT_FILE
+              value: /etc/dkv/peer-certs/tls.crt
+            - name: DKV_PEER_KEY_FILE
+              value: /etc/dkv/peer-certs/tls.key
+            - name: DKV_PEER_TRUSTED_CA_FILE
+              value: /etc/dkv/peer-certs/ca.crt
+            # - name: DKV_CERT_FILE
+            #   value: ""
+            # - name: DKV_KEY_FILE
+            #   value: ""
+            # - name: DKV_TRUSTED_CA_FILE
+            #   value: ""
+            - name: DKV_DATA_DIR
+              value: /data
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: peer-certs
+              mountPath: /etc/dkv/peer-certs
+      volumes:
+        - name: peer-certs
+          secret:
+            secretName: dkv-peer-cert-secret
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ['ReadWriteOnce']
+        storageClassName: local-path
+        resources:
+          requests:
+            storage: 1Gi
