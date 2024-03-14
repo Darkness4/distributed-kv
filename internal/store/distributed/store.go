@@ -237,7 +237,16 @@ func (s *Store) apply(req *dkvv1.Command) (any, error) {
 	if err != nil {
 		return nil, err
 	}
+	addr, id := s.raft.LeaderWithID()
+	if addr == "" || id == "" {
+		return nil, errors.New("no leader")
+	}
 	timeout := 10 * time.Second
+
+	if id != raft.ServerID(s.RaftID) {
+		return nil, s.raft.ForwardApply(id, addr, b, timeout)
+	}
+
 	future := s.raft.Apply(b, timeout)
 	if future.Error() != nil {
 		return nil, future.Error()

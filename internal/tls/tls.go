@@ -42,7 +42,13 @@ func SetupClientTLSConfig(crt, key, ca, serverName string) (*tls.Config, error) 
 		if err != nil {
 			return nil, err
 		}
-		cfg.RootCAs = x509.NewCertPool()
+		if cfg.RootCAs == nil {
+			cas, err := x509.SystemCertPool()
+			if err != nil {
+				cfg.RootCAs = x509.NewCertPool()
+			}
+			cfg.RootCAs = cas
+		}
 		cfg.RootCAs.AppendCertsFromPEM(caCert)
 		cfg.ServerName = serverName
 	}

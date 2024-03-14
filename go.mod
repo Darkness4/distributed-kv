@@ -7,7 +7,7 @@ toolchain go1.22.1
 require (
 	connectrpc.com/connect v1.15.0
 	github.com/cockroachdb/pebble v1.1.0
-	github.com/hashicorp/go-msgpack v0.5.5
+	github.com/hashicorp/go-msgpack/v2 v2.1.1
 	github.com/hashicorp/raft v1.6.1
 	github.com/joho/godotenv v1.5.1
 	github.com/lni/goutils v1.4.0
@@ -16,6 +16,8 @@ require (
 	golang.org/x/net v0.21.0
 	google.golang.org/protobuf v1.33.0
 )
+
+replace github.com/hashicorp/raft => github.com/darkness4/raft v1.6.2
 
 require (
 	github.com/DataDog/zstd v1.5.2 // indirect
@@ -35,7 +37,6 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/hashicorp/go-hclog v1.6.2 // indirect
 	github.com/hashicorp/go-immutable-radix v1.0.0 // indirect
-	github.com/hashicorp/go-msgpack/v2 v2.1.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.1 // indirect
 	github.com/klauspost/compress v1.15.15 // indirect
 	github.com/kr/pretty v0.3.1 // indirect

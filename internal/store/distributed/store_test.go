@@ -137,6 +137,28 @@ func TestStore(t *testing.T) {
 				}, 500*time.Millisecond, 50*time.Millisecond)
 			})
 
+			// Act: Set key as non-leader
+			t.Run("Set a key as non-leader", func(t *testing.T) {
+				err := stores[1].Set("key2", "value")
+				require.NoError(t, err)
+
+				time.Sleep(50 * time.Millisecond)
+
+				// Assert: Get the key from all nodes
+				require.Eventually(t, func() bool {
+					for i := 0; i < nodes; i++ {
+						got, err := stores[i].Get("key2")
+						if err != nil {
+							return false
+						}
+						if got != "value" {
+							return false
+						}
+					}
+					return true
+				}, 10*time.Second, 50*time.Millisecond)
+			})
+
 			t.Run("Set a key with node1 kicked out", func(t *testing.T) {
 				// Act
 				err := stores[0].Leave("node1")
