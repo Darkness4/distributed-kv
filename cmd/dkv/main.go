@@ -204,7 +204,7 @@ var app = &cli.App{
 		}
 		slog.Info("server listening", "address", listenClientAddress)
 		srv := &http.Server{
-			BaseContext: func(listener net.Listener) context.Context { return ctx },
+			BaseContext: func(_ net.Listener) context.Context { return ctx },
 			Handler:     h2c.NewHandler(r, &http2.Server{}),
 		}
 		defer func() {

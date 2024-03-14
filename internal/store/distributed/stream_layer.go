@@ -31,7 +31,6 @@ func (s *TLSStreamLayer) Dial(address raft.ServerAddress, timeout time.Duration)
 	dialer := &net.Dialer{Timeout: timeout}
 	if s.ClientTLSConfig == nil {
 		return dialer.Dial("tcp", string(address))
-	} else {
-		return tls.DialWithDialer(dialer, "tcp", string(address), s.ClientTLSConfig)
 	}
+	return tls.DialWithDialer(dialer, "tcp", string(address), s.ClientTLSConfig)
 }
