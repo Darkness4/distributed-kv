@@ -1,0 +1,106 @@
+apiVersion: k0sctl.k0sproject.io/v1beta1
+kind: Cluster
+metadata:
+  name: k8s.example.com-cluster
+spec:
+  hosts:
+    - ssh:
+        address: 192.168.77.10
+        user: root
+        port: 22
+        keyPath: id_rsa_smoke_test
+      role: controller+worker
+      hostname: manager0
+      noTaints: true
+      privateInterface: eth1
+      privateAddress: 192.168.77.10
+      installFlags:
+        - --debug
+      hooks:
+        apply:
+          before:
+            # Set SELinux Permissive
+            - sh -c 'if [ "$(getenforce)" != "Permissive" ] && [ "$(getenforce)" != "Disabled" ]; then sed -i s/^SELINUX=.*$/SELINUX=permissive/ /etc/selinux/config; fi'
+            - sh -c 'if [ "$(getenforce)" != "Permissive" ] && [ "$(getenforce)" != "Disabled" ]; then setenforce 0; fi'
+
+    - ssh:
+        address: 192.168.77.11
+        user: root
+        port: 22
+        keyPath: id_rsa_smoke_test
+      role: worker
+      hostname: worker0
+      privateInterface: eth1
+      privateAddress: 192.168.77.11
+      installFlags:
+        - --debug
+      hooks:
+        apply:
+          before:
+            # Set SELinux Permissive
+            - sh -c 'if [ "$(getenforce)" != "Permissive" ] && [ "$(getenforce)" != "Disabled" ]; then sed -i s/^SELINUX=.*$/SELINUX=permissive/ /etc/selinux/config; fi'
+            - sh -c 'if [ "$(getenforce)" != "Permissive" ] && [ "$(getenforce)" != "Disabled" ]; then setenforce 0; fi'
+
+    - ssh:
+        address: 192.168.77.12
+        user: root
+        port: 22
+        keyPath: id_rsa_smoke_test
+      role: worker
+      hostname: worker1
+      privateInterface: eth1
+      privateAddress: 192.168.77.12
+      installFlags:
+        - --debug
+      hooks:
+        apply:
+          before:
+            # Set SELinux Permissive
+            - sh -c 'if [ "$(getenforce)" != "Permissive" ] && [ "$(getenforce)" != "Disabled" ]; then sed -i s/^SELINUX=.*$/SELINUX=permissive/ /etc/selinux/config; fi'
+            - sh -c 'if [ "$(getenforce)" != "Permissive" ] && [ "$(getenforce)" != "Disabled" ]; then setenforce 0; fi'
+
+  k0s:
+    version: '1.29.2+k0s.0'
+    dynamicConfig: false
+    config:
+      apiVersion: k0s.k0sproject.io/v1beta1
+      kind: ClusterConfig
+      metadata:
+        name: k8s.example.com
+      spec:
+        api:
+          k0sApiPort: 9443
+          port: 6443
+        installConfig:
+          users:
+            etcdUser: etcd
+            kineUser: kube-apiserver
+            konnectivityUser: konnectivity-server
+            kubeAPIserverUser: kube-apiserver
+            kubeSchedulerUser: kube-scheduler
+        konnectivity:
+          adminPort: 8133
+          agentPort: 8132
+        network:
+          calico:
+            mode: 'vxlan'
+            overlay: Always
+            mtu: 0
+            wireguard: false
+          kubeProxy:
+            disabled: false
+            mode: iptables
+          kuberouter:
+            autoMTU: true
+            mtu: 0
+            peerRouterASNs: ''
+            peerRouterIPs: ''
+          podCIDR: 10.244.0.0/16
+          provider: calico
+          serviceCIDR: 10.96.0.0/12
+        podSecurityPolicy:
+          defaultPolicy: 00-k0s-privileged
+        storage:
+          type: kine
+        telemetry:
+          enabled: false
