@@ -23,6 +23,8 @@ const _ = connect.IsAtLeastVersion1_13_0
 const (
 	// DkvAPIName is the fully-qualified name of the DkvAPI service.
 	DkvAPIName = "dkv.v1.DkvAPI"
+	// MembershipAPIName is the fully-qualified name of the MembershipAPI service.
+	MembershipAPIName = "dkv.v1.MembershipAPI"
 )
 
 // These constants are the fully-qualified names of the RPCs defined in this package. They're
@@ -39,14 +41,27 @@ const (
 	DkvAPISetProcedure = "/dkv.v1.DkvAPI/Set"
 	// DkvAPIDeleteProcedure is the fully-qualified name of the DkvAPI's Delete RPC.
 	DkvAPIDeleteProcedure = "/dkv.v1.DkvAPI/Delete"
+	// MembershipAPIGetServersProcedure is the fully-qualified name of the MembershipAPI's GetServers
+	// RPC.
+	MembershipAPIGetServersProcedure = "/dkv.v1.MembershipAPI/GetServers"
+	// MembershipAPIJoinServerProcedure is the fully-qualified name of the MembershipAPI's JoinServer
+	// RPC.
+	MembershipAPIJoinServerProcedure = "/dkv.v1.MembershipAPI/JoinServer"
+	// MembershipAPILeaveServerProcedure is the fully-qualified name of the MembershipAPI's LeaveServer
+	// RPC.
+	MembershipAPILeaveServerProcedure = "/dkv.v1.MembershipAPI/LeaveServer"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
 var (
-	dkvAPIServiceDescriptor      = v1.File_dkv_v1_dkv_proto.Services().ByName("DkvAPI")
-	dkvAPIGetMethodDescriptor    = dkvAPIServiceDescriptor.Methods().ByName("Get")
-	dkvAPISetMethodDescriptor    = dkvAPIServiceDescriptor.Methods().ByName("Set")
-	dkvAPIDeleteMethodDescriptor = dkvAPIServiceDescriptor.Methods().ByName("Delete")
+	dkvAPIServiceDescriptor                  = v1.File_dkv_v1_dkv_proto.Services().ByName("DkvAPI")
+	dkvAPIGetMethodDescriptor                = dkvAPIServiceDescriptor.Methods().ByName("Get")
+	dkvAPISetMethodDescriptor                = dkvAPIServiceDescriptor.Methods().ByName("Set")
+	dkvAPIDeleteMethodDescriptor             = dkvAPIServiceDescriptor.Methods().ByName("Delete")
+	membershipAPIServiceDescriptor           = v1.File_dkv_v1_dkv_proto.Services().ByName("MembershipAPI")
+	membershipAPIGetServersMethodDescriptor  = membershipAPIServiceDescriptor.Methods().ByName("GetServers")
+	membershipAPIJoinServerMethodDescriptor  = membershipAPIServiceDescriptor.Methods().ByName("JoinServer")
+	membershipAPILeaveServerMethodDescriptor = membershipAPIServiceDescriptor.Methods().ByName("LeaveServer")
 )
 
 // DkvAPIClient is a client for the dkv.v1.DkvAPI service.
@@ -167,4 +182,124 @@ func (UnimplementedDkvAPIHandler) Set(context.Context, *connect.Request[v1.SetRe
 
 func (UnimplementedDkvAPIHandler) Delete(context.Context, *connect.Request[v1.DeleteRequest]) (*connect.Response[v1.DeleteResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("dkv.v1.DkvAPI.Delete is not implemented"))
+}
+
+// MembershipAPIClient is a client for the dkv.v1.MembershipAPI service.
+type MembershipAPIClient interface {
+	GetServers(context.Context, *connect.Request[v1.GetServersRequest]) (*connect.Response[v1.GetServersResponse], error)
+	JoinServer(context.Context, *connect.Request[v1.JoinServerRequest]) (*connect.Response[v1.JoinServerResponse], error)
+	LeaveServer(context.Context, *connect.Request[v1.LeaveServerRequest]) (*connect.Response[v1.LeaveServerResponse], error)
+}
+
+// NewMembershipAPIClient constructs a client for the dkv.v1.MembershipAPI service. By default, it
+// uses the Connect protocol with the binary Protobuf Codec, asks for gzipped responses, and sends
+// uncompressed requests. To use the gRPC or gRPC-Web protocols, supply the connect.WithGRPC() or
+// connect.WithGRPCWeb() options.
+//
+// The URL supplied here should be the base URL for the Connect or gRPC server (for example,
+// http://api.acme.com or https://acme.com/grpc).
+func NewMembershipAPIClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) MembershipAPIClient {
+	baseURL = strings.TrimRight(baseURL, "/")
+	return &membershipAPIClient{
+		getServers: connect.NewClient[v1.GetServersRequest, v1.GetServersResponse](
+			httpClient,
+			baseURL+MembershipAPIGetServersProcedure,
+			connect.WithSchema(membershipAPIGetServersMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		joinServer: connect.NewClient[v1.JoinServerRequest, v1.JoinServerResponse](
+			httpClient,
+			baseURL+MembershipAPIJoinServerProcedure,
+			connect.WithSchema(membershipAPIJoinServerMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		leaveServer: connect.NewClient[v1.LeaveServerRequest, v1.LeaveServerResponse](
+			httpClient,
+			baseURL+MembershipAPILeaveServerProcedure,
+			connect.WithSchema(membershipAPILeaveServerMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+	}
+}
+
+// membershipAPIClient implements MembershipAPIClient.
+type membershipAPIClient struct {
+	getServers  *connect.Client[v1.GetServersRequest, v1.GetServersResponse]
+	joinServer  *connect.Client[v1.JoinServerRequest, v1.JoinServerResponse]
+	leaveServer *connect.Client[v1.LeaveServerRequest, v1.LeaveServerResponse]
+}
+
+// GetServers calls dkv.v1.MembershipAPI.GetServers.
+func (c *membershipAPIClient) GetServers(ctx context.Context, req *connect.Request[v1.GetServersRequest]) (*connect.Response[v1.GetServersResponse], error) {
+	return c.getServers.CallUnary(ctx, req)
+}
+
+// JoinServer calls dkv.v1.MembershipAPI.JoinServer.
+func (c *membershipAPIClient) JoinServer(ctx context.Context, req *connect.Request[v1.JoinServerRequest]) (*connect.Response[v1.JoinServerResponse], error) {
+	return c.joinServer.CallUnary(ctx, req)
+}
+
+// LeaveServer calls dkv.v1.MembershipAPI.LeaveServer.
+func (c *membershipAPIClient) LeaveServer(ctx context.Context, req *connect.Request[v1.LeaveServerRequest]) (*connect.Response[v1.LeaveServerResponse], error) {
+	return c.leaveServer.CallUnary(ctx, req)
+}
+
+// MembershipAPIHandler is an implementation of the dkv.v1.MembershipAPI service.
+type MembershipAPIHandler interface {
+	GetServers(context.Context, *connect.Request[v1.GetServersRequest]) (*connect.Response[v1.GetServersResponse], error)
+	JoinServer(context.Context, *connect.Request[v1.JoinServerRequest]) (*connect.Response[v1.JoinServerResponse], error)
+	LeaveServer(context.Context, *connect.Request[v1.LeaveServerRequest]) (*connect.Response[v1.LeaveServerResponse], error)
+}
+
+// NewMembershipAPIHandler builds an HTTP handler from the service implementation. It returns the
+// path on which to mount the handler and the handler itself.
+//
+// By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
+// and JSON codecs. They also support gzip compression.
+func NewMembershipAPIHandler(svc MembershipAPIHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	membershipAPIGetServersHandler := connect.NewUnaryHandler(
+		MembershipAPIGetServersProcedure,
+		svc.GetServers,
+		connect.WithSchema(membershipAPIGetServersMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	membershipAPIJoinServerHandler := connect.NewUnaryHandler(
+		MembershipAPIJoinServerProcedure,
+		svc.JoinServer,
+		connect.WithSchema(membershipAPIJoinServerMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	membershipAPILeaveServerHandler := connect.NewUnaryHandler(
+		MembershipAPILeaveServerProcedure,
+		svc.LeaveServer,
+		connect.WithSchema(membershipAPILeaveServerMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	return "/dkv.v1.MembershipAPI/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case MembershipAPIGetServersProcedure:
+			membershipAPIGetServersHandler.ServeHTTP(w, r)
+		case MembershipAPIJoinServerProcedure:
+			membershipAPIJoinServerHandler.ServeHTTP(w, r)
+		case MembershipAPILeaveServerProcedure:
+			membershipAPILeaveServerHandler.ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
+}
+
+// UnimplementedMembershipAPIHandler returns CodeUnimplemented from all methods.
+type UnimplementedMembershipAPIHandler struct{}
+
+func (UnimplementedMembershipAPIHandler) GetServers(context.Context, *connect.Request[v1.GetServersRequest]) (*connect.Response[v1.GetServersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("dkv.v1.MembershipAPI.GetServers is not implemented"))
+}
+
+func (UnimplementedMembershipAPIHandler) JoinServer(context.Context, *connect.Request[v1.JoinServerRequest]) (*connect.Response[v1.JoinServerResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("dkv.v1.MembershipAPI.JoinServer is not implemented"))
+}
+
+func (UnimplementedMembershipAPIHandler) LeaveServer(context.Context, *connect.Request[v1.LeaveServerRequest]) (*connect.Response[v1.LeaveServerResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("dkv.v1.MembershipAPI.LeaveServer is not implemented"))
 }

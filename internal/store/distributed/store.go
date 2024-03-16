@@ -27,6 +27,8 @@ type Store struct {
 	RaftBind string
 	// RaftID is the ID of the local node.
 	RaftID string
+	// RaftAdvertisedAddr is the address other nodes should use to communicate with this node.
+	RaftAdvertisedAddr raft.ServerAddress
 
 	fsm  *FSM
 	raft *raft.Raft
@@ -72,15 +74,21 @@ func applyStoreOptions(opts []StoreOption) StoreOptions {
 	return options
 }
 
-func NewStore(raftDir, raftBind, raftID string, storer Storer, opts ...StoreOption) *Store {
+func NewStore(
+	raftDir, raftBind, raftID string,
+	raftAdvertisedAddr raft.ServerAddress,
+	storer Storer,
+	opts ...StoreOption,
+) *Store {
 	o := applyStoreOptions(opts)
 	return &Store{
-		RaftDir:      raftDir,
-		RaftBind:     raftBind,
-		RaftID:       raftID,
-		fsm:          NewFSM(storer),
-		shutdownCh:   make(chan struct{}),
-		StoreOptions: o,
+		RaftDir:            raftDir,
+		RaftBind:           raftBind,
+		RaftID:             raftID,
+		RaftAdvertisedAddr: raftAdvertisedAddr,
+		fsm:                NewFSM(storer),
+		shutdownCh:         make(chan struct{}),
+		StoreOptions:       o,
 	}
 }
 
@@ -111,9 +119,10 @@ func (s *Store) Open(bootstrap bool) error {
 		return err
 	}
 	transport := raft.NewNetworkTransport(&TLSStreamLayer{
-		Listener:        lis,
-		ServerTLSConfig: s.serverTLSConfig,
-		ClientTLSConfig: s.clientTLSConfig,
+		Listener:          lis,
+		AdvertizedAddress: raft.ServerAddress(s.RaftAdvertisedAddr),
+		ServerTLSConfig:   s.serverTLSConfig,
+		ClientTLSConfig:   s.clientTLSConfig,
 	}, 3, 10*time.Second, os.Stderr)
 
 	// Instantiate the Raft systems.
@@ -153,7 +162,7 @@ func (s *Store) Open(bootstrap bool) error {
 	return err
 }
 
-func (s *Store) Join(id, addr string) error {
+func (s *Store) Join(id raft.ServerID, addr raft.ServerAddress) error {
 	slog.Info("request node to join", "id", id, "addr", addr)
 
 	configFuture := s.raft.GetConfiguration()
@@ -165,10 +174,10 @@ func (s *Store) Join(id, addr string) error {
 	for _, srv := range configFuture.Configuration().Servers {
 		// If a node already exists with either the joining node's ID or address,
 		// that node may need to be removed from the config first.
-		if srv.ID == raft.ServerID(id) || srv.Address == raft.ServerAddress(addr) {
+		if srv.ID == id || srv.Address == addr {
 			// However if *both* the ID and the address are the same, then nothing -- not even
 			// a join operation -- is needed.
-			if srv.Address == raft.ServerAddress(addr) && srv.ID == raft.ServerID(id) {
+			if srv.Address == addr && srv.ID == id {
 				slog.Info(
 					"node already member of cluster, ignoring join request",
 					"id",
@@ -179,19 +188,19 @@ func (s *Store) Join(id, addr string) error {
 				return nil
 			}
 
-			if err := s.raft.RemoveServer(raft.ServerID(id), 0, 0).Error(); err != nil {
+			if err := s.raft.RemoveServer(id, 0, 0).Error(); err != nil {
 				return fmt.Errorf("error removing existing node %s at %s: %s", id, addr, err)
 			}
 		}
 	}
 
 	// Add the new server
-	return s.raft.AddVoter(raft.ServerID(id), raft.ServerAddress(addr), 0, 0).Error()
+	return s.raft.AddVoter(id, addr, 0, 0).Error()
 }
 
-func (s *Store) Leave(id string) error {
+func (s *Store) Leave(id raft.ServerID) error {
 	slog.Info("request node to leave", "id", id)
-	return s.raft.RemoveServer(raft.ServerID(id), 0, 0).Error()
+	return s.raft.RemoveServer(id, 0, 0).Error()
 }
 
 func (s *Store) WaitForLeader(timeout time.Duration) (raft.ServerID, error) {
@@ -244,12 +253,13 @@ func (s *Store) apply(req *dkvv1.Command) (any, error) {
 	timeout := 10 * time.Second
 
 	if id != raft.ServerID(s.RaftID) {
+		slog.Warn("forwarding apply to leader", "leader", id, "addr", addr)
 		return nil, s.raft.ForwardApply(id, addr, b, timeout)
 	}
 
 	future := s.raft.Apply(b, timeout)
-	if future.Error() != nil {
-		return nil, future.Error()
+	if err := future.Error(); err != nil {
+		return nil, err
 	}
 	res := future.Response()
 	if err, ok := res.(error); ok {
@@ -283,4 +293,16 @@ func (s *Store) Delete(key string) error {
 
 func (s *Store) Get(key string) (string, error) {
 	return s.fsm.storer.Get(key)
+}
+
+func (s *Store) GetLeader() (raft.ServerAddress, raft.ServerID) {
+	return s.raft.LeaderWithID()
+}
+
+func (s *Store) GetServers() ([]raft.Server, error) {
+	configFuture := s.raft.GetConfiguration()
+	if err := configFuture.Error(); err != nil {
+		return nil, err
+	}
+	return configFuture.Configuration().Servers, nil
 }

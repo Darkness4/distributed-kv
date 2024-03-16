@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/raft"
 	"github.com/joho/godotenv"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/net/http2"
@@ -33,6 +34,7 @@ var (
 	listenClientAddress string
 	initialCluster      cli.StringSlice
 	initialClusterState string
+	advertiseNodes      cli.StringSlice
 
 	peerCertFile      string
 	peerKeyFile       string
@@ -58,6 +60,12 @@ var app = &cli.App{
 			EnvVars:     []string{"DKV_NAME"},
 			Destination: &name,
 			Required:    true,
+		},
+		&cli.StringSliceFlag{
+			Name:        "advertise-nodes",
+			Usage:       "List of nodes to advertise",
+			EnvVars:     []string{"DKV_ADVERTISE_NODES"},
+			Destination: &advertiseNodes,
 		},
 		&cli.StringFlag{
 			Name:        "listen-peer-address",
@@ -152,7 +160,6 @@ var app = &cli.App{
 				peerCertFile,
 				peerKeyFile,
 				peerTrustedCAFile,
-				"",
 			)
 			if err != nil {
 				return err
@@ -169,16 +176,8 @@ var app = &cli.App{
 		}
 
 		// Store configuration
-		dstore := distributed.NewStore(
-			dataDir,
-			listenPeerAddress,
-			name,
-			memory.New(),
-			storeOpts...,
-		)
-
-		// Bootstrap
-		if err := bootstrapStore(dstore); err != nil {
+		dstore, err := bootstrapStore(storeOpts)
+		if err != nil {
 			return err
 		}
 		defer func() {
@@ -191,8 +190,23 @@ var app = &cli.App{
 
 		// Routes
 		r := http.NewServeMux()
-		path, h := dkvv1connect.NewDkvAPIHandler(api.NewDkvAPIHandler(dstore))
-		r.Handle(path, h)
+		r.Handle(dkvv1connect.NewDkvAPIHandler(&api.DkvAPIHandler{
+			Store: dstore,
+		}))
+
+		nodes := make(map[raft.ServerID]string)
+		for _, node := range advertiseNodes.Value() {
+			id, addr, ok := strings.Cut(node, "=")
+			if !ok {
+				slog.Error("invalid initial cluster configuration", "node", node)
+				continue
+			}
+			nodes[raft.ServerID(id)] = addr
+		}
+		r.Handle(dkvv1connect.NewMembershipAPIHandler(&api.MembershipAPIHandler{
+			AdvertiseNodes: nodes,
+			Store:          dstore,
+		}))
 
 		// Start the server
 		l, err := net.Listen("tcp", listenClientAddress)
@@ -216,43 +230,56 @@ var app = &cli.App{
 	},
 }
 
-func bootstrapStore(dstore *distributed.Store) error {
+func bootstrapStore(storeOpts []distributed.StoreOption) (dstore *distributed.Store, err error) {
 	// Bootstrap
 	nodes := initialCluster.Value()
 	if len(nodes) == 0 {
-		return fmt.Errorf("invalid initial cluster configuration (no nodes): %s", nodes)
+		return nil, fmt.Errorf("invalid initial cluster configuration (no nodes): %s", nodes)
 	}
 	bootstrapNode, _, ok := strings.Cut(nodes[0], "=")
 	if !ok {
-		return fmt.Errorf("invalid initial cluster configuration: %s", nodes)
+		return nil, fmt.Errorf("invalid initial cluster configuration: %s", nodes)
 	}
+	advertizedPeers := make(map[raft.ServerID]raft.ServerAddress)
+	for _, node := range nodes {
+		id, addr, ok := strings.Cut(node, "=")
+		if !ok {
+			return nil, fmt.Errorf("invalid initial cluster configuration: %s", node)
+		}
+		advertizedPeers[raft.ServerID(id)] = raft.ServerAddress(addr)
+	}
+
+	dstore = distributed.NewStore(
+		dataDir,
+		listenPeerAddress,
+		name,
+		advertizedPeers[raft.ServerID(name)],
+		memory.New(),
+		storeOpts...,
+	)
+
 	bootstrap := initialClusterState == "new" && bootstrapNode == name
 	if err := dstore.Open(bootstrap); err != nil {
-		return err
+		return nil, err
 	}
 	if bootstrapNode == name {
 		// Wait raft to elect us as leader
 		id, err := dstore.WaitForLeader(leaderWaitTimeout)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		slog.Info("node is leader", "id", id)
 
 		// Add the other nodes
-		for _, node := range nodes {
-			node, address, ok := strings.Cut(node, "=")
-			if !ok {
-				return fmt.Errorf("invalid initial cluster configuration: %s", node)
-			}
-
-			if node != bootstrapNode {
-				if err := dstore.Join(node, address); err != nil {
-					return err
+		for id, addr := range advertizedPeers {
+			if id != raft.ServerID(bootstrapNode) { // Ignore self
+				if err := dstore.Join(id, addr); err != nil {
+					return nil, err
 				}
 			}
 		}
 	}
-	return nil
+	return dstore, nil
 }
 
 func main() {

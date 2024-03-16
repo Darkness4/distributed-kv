@@ -26,7 +26,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: dkv
-          image: localhost:30000/library/dkv:latest
+          image: ghcr.io/darkness4/dkv:dev
           imagePullPolicy: Always
           securityContext:
             runAsUser: 1000
@@ -43,6 +43,8 @@ spec:
                   fieldPath: metadata.name
             - name: DKV_INITIAL_CLUSTER
               value: dkv-0=dkv-0.dkv.default.svc.cluster.local:2380,dkv-1=dkv-1.dkv.default.svc.cluster.local:2380,dkv-2=dkv-2.dkv.default.svc.cluster.local:2380
+            - name: DKV_ADVERTISE_NODES
+              value: ''
             - name: DKV_INITIAL_CLUSTER_STATE
               value: new
             - name: DKV_PEER_CERT_FILE
@@ -51,12 +53,12 @@ spec:
               value: /etc/dkv/peer-certs/tls.key
             - name: DKV_PEER_TRUSTED_CA_FILE
               value: /etc/dkv/peer-certs/ca.crt
-            # - name: DKV_CERT_FILE
-            #   value: ""
-            # - name: DKV_KEY_FILE
-            #   value: ""
-            # - name: DKV_TRUSTED_CA_FILE
-            #   value: ""
+            - name: DKV_CERT_FILE
+              value: /etc/dkv/certs/tls.crt
+            - name: DKV_KEY_FILE
+              value: /etc/dkv/certs/tls.key
+            - name: DKV_TRUSTED_CA_FILE
+              value: /etc/dkv/certs/ca.crt
             - name: DKV_DATA_DIR
               value: /data
           volumeMounts:
@@ -64,10 +66,15 @@ spec:
               mountPath: /data
             - name: peer-certs
               mountPath: /etc/dkv/peer-certs
+            - name: certs
+              mountPath: /etc/dkv/certs
       volumes:
         - name: peer-certs
           secret:
             secretName: dkv-peer-cert-secret
+        - name: certs
+          secret:
+            secretName: dkv.example.com-cert-secret
   volumeClaimTemplates:
     - metadata:
         name: data

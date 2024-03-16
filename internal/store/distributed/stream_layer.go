@@ -12,8 +12,9 @@ var _ raft.StreamLayer = (*TLSStreamLayer)(nil)
 
 type TLSStreamLayer struct {
 	net.Listener
-	ServerTLSConfig *tls.Config
-	ClientTLSConfig *tls.Config
+	AdvertizedAddress raft.ServerAddress
+	ServerTLSConfig   *tls.Config
+	ClientTLSConfig   *tls.Config
 }
 
 func (s *TLSStreamLayer) Accept() (net.Conn, error) {
@@ -27,11 +28,21 @@ func (s *TLSStreamLayer) Accept() (net.Conn, error) {
 	return conn, nil
 }
 
+func (s *TLSStreamLayer) PublicAddress() raft.ServerAddress {
+	return s.AdvertizedAddress
+}
+
 func (s *TLSStreamLayer) Dial(address raft.ServerAddress, timeout time.Duration) (net.Conn, error) {
 	dialer := &net.Dialer{Timeout: timeout}
 	conn, err := dialer.Dial("tcp", string(address))
 	if s.ClientTLSConfig != nil {
-		return tls.Client(conn, s.ClientTLSConfig), err
+		serverName, _, serr := net.SplitHostPort(string(address))
+		if serr != nil {
+			serverName = string(address)
+		}
+		tlsConfig := s.ClientTLSConfig.Clone()
+		tlsConfig.ServerName = serverName
+		return tls.Client(conn, tlsConfig), err
 	}
 	return conn, err
 }

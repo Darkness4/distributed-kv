@@ -12,27 +12,21 @@ import (
 var _ dkvv1connect.DkvAPIHandler = (*DkvAPIHandler)(nil)
 
 type DkvAPIHandler struct {
-	store store.Store
-}
-
-func NewDkvAPIHandler(store store.Store) *DkvAPIHandler {
-	return &DkvAPIHandler{
-		store: store,
-	}
+	store.Store
 }
 
 func (d *DkvAPIHandler) Delete(
 	_ context.Context,
 	req *connect.Request[dkvv1.DeleteRequest],
 ) (*connect.Response[dkvv1.DeleteResponse], error) {
-	return &connect.Response[dkvv1.DeleteResponse]{}, d.store.Delete(req.Msg.Key)
+	return &connect.Response[dkvv1.DeleteResponse]{}, d.Store.Delete(req.Msg.Key)
 }
 
 func (d *DkvAPIHandler) Get(
 	_ context.Context,
 	req *connect.Request[dkvv1.GetRequest],
 ) (*connect.Response[dkvv1.GetResponse], error) {
-	res, err := d.store.Get(req.Msg.Key)
+	res, err := d.Store.Get(req.Msg.Key)
 	if err != nil {
 		return nil, err
 	}
@@ -43,5 +37,5 @@ func (d *DkvAPIHandler) Set(
 	_ context.Context,
 	req *connect.Request[dkvv1.SetRequest],
 ) (*connect.Response[dkvv1.SetResponse], error) {
-	return &connect.Response[dkvv1.SetResponse]{}, d.store.Set(req.Msg.Key, req.Msg.Value)
+	return &connect.Response[dkvv1.SetResponse]{}, d.Store.Set(req.Msg.Key, req.Msg.Value)
 }

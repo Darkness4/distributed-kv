@@ -17,7 +17,9 @@ require (
 	google.golang.org/protobuf v1.33.0
 )
 
-replace github.com/hashicorp/raft => github.com/darkness4/raft v1.6.2
+replace github.com/hashicorp/raft => github.com/darkness4/raft v1.6.3
+
+// replace github.com/hashicorp/raft => /home/marc/Projects/Personal/go/raft
 
 require (
 	github.com/DataDog/zstd v1.5.2 // indirect

@@ -44,7 +44,7 @@ func TestStore(t *testing.T) {
 		})
 		addr := getRandomAddress(t)
 		store := memory.New()
-		s := distributed.NewStore(tmp, addr, "node1", store)
+		s := distributed.NewStore(tmp, addr, "node1", raft.ServerAddress(addr), store)
 		t.Cleanup(func() {
 			err = s.Shutdown()
 			require.NoError(t, err)
@@ -80,13 +80,13 @@ func TestStore(t *testing.T) {
 				peerCert,
 				peerKey,
 				caCert,
-				"localhost",
 			)
 			require.NoError(t, err)
 			s := distributed.NewStore(
 				tmp,
 				addr,
 				fmt.Sprintf("node%d", i),
+				raft.ServerAddress(addr),
 				store,
 				distributed.WithClientTLSConfig(peerClientTLSConfig),
 				distributed.WithServerTLSConfig(peerServerTLSConfig),
@@ -106,7 +106,10 @@ func TestStore(t *testing.T) {
 
 				// Act & assert
 				if i > 0 {
-					err = stores[0].Join(fmt.Sprintf("node%d", i), s.RaftBind)
+					err = stores[0].Join(
+						raft.ServerID(fmt.Sprintf("node%d", i)),
+						raft.ServerAddress(s.RaftBind),
+					)
 					require.NoError(t, err)
 				} else {
 					id, err := s.WaitForLeader(5 * time.Second)
@@ -196,7 +199,7 @@ func TestStore(t *testing.T) {
 
 			// Act: Set the key again, but with node1 back in (convergence test)
 			t.Run("Set a key with node1 back in", func(t *testing.T) {
-				err := stores[0].Join("node1", stores[1].RaftBind)
+				err := stores[0].Join("node1", raft.ServerAddress(stores[1].RaftBind))
 				require.NoError(t, err)
 
 				time.Sleep(50 * time.Millisecond)

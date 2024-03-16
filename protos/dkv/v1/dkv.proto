@@ -27,3 +27,28 @@ message SetResponse {}
 
 message DeleteRequest { string key = 1; }
 message DeleteResponse {}
+
+service MembershipAPI {
+  rpc GetServers(GetServersRequest) returns (GetServersResponse);
+  rpc JoinServer(JoinServerRequest) returns (JoinServerResponse);
+  rpc LeaveServer(LeaveServerRequest) returns (LeaveServerResponse);
+}
+
+message Server {
+  string id = 1;
+  string raft_address = 2;
+  string rpc_address = 3;
+  bool is_leader = 4;
+}
+
+message GetServersRequest {}
+message GetServersResponse { repeated Server servers = 1; }
+
+message JoinServerRequest {
+  string id = 1;
+  string address = 2;
+}
+message JoinServerResponse {}
+
+message LeaveServerRequest { string id = 1; }
+message LeaveServerResponse {}

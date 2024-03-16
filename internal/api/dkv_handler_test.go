@@ -18,7 +18,7 @@ func TestDkvAPIHandler(t *testing.T) {
 	t.Parallel()
 
 	store := mockstore.NewStore(t)
-	svc := api.NewDkvAPIHandler(store)
+	svc := &api.DkvAPIHandler{Store: store}
 	path, h := dkvv1connect.NewDkvAPIHandler(svc)
 	mux := http.NewServeMux()
 	mux.Handle(path, h)

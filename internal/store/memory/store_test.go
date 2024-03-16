@@ -37,4 +37,22 @@ func TestStore(t *testing.T) {
 		_, err = s.Get("key")
 		require.ErrorIs(t, err, memory.ErrNotFound)
 	})
+
+	t.Run("Dump", func(t *testing.T) {
+		err := s.Set("key", "value")
+		require.NoError(t, err)
+
+		data := s.Dump()
+		require.Equal(t, map[string]string{"key": "value"}, data)
+	})
+
+	t.Run("Clear", func(t *testing.T) {
+		err := s.Set("key", "value")
+		require.NoError(t, err)
+
+		s.Clear()
+
+		_, err = s.Get("key")
+		require.ErrorIs(t, err, memory.ErrNotFound)
+	})
 }

@@ -28,7 +28,7 @@ func SetupServerTLSConfig(crt, key, ca string) (*tls.Config, error) {
 	return &cfg, nil
 }
 
-func SetupClientTLSConfig(crt, key, ca, serverName string) (*tls.Config, error) {
+func SetupClientTLSConfig(crt, key, ca string) (*tls.Config, error) {
 	var cfg tls.Config
 	if crt != "" && key != "" {
 		certificate, err := tls.LoadX509KeyPair(crt, key)
@@ -50,7 +50,6 @@ func SetupClientTLSConfig(crt, key, ca, serverName string) (*tls.Config, error) 
 			cfg.RootCAs = cas
 		}
 		cfg.RootCAs.AppendCertsFromPEM(caCert)
-		cfg.ServerName = serverName
 	}
 	return &cfg, nil
 }

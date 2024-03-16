@@ -13,3 +13,17 @@ spec:
     - port: 3000
       name: http
       targetPort: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dkv-nodeport
+spec:
+  type: NodePort
+  selector:
+    app: dkv
+  ports:
+    - port: 3000
+      name: http
+      nodePort: 30001
+      targetPort: http
