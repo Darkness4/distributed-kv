@@ -117,7 +117,7 @@ GLOBAL OPTIONS:
 
 ## References
 
-- [Blog Article (TODO)]()
+- [Blog Article](https://blog.mnguyen.fr/blog/2024-03-17-distributed-systems-in-go)
 - [Raft](https://raft.github.io/)
 - [Raft's Paper](https://raft.github.io/raft.pdf)
 - [Distributed Services with Go - Traevis Jeffery](https://www.google.com/search?q=978-1680507607)
