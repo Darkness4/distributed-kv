@@ -6,7 +6,7 @@ import (
 	"distributed-kv/gen/dkv/v1/dkvv1connect"
 	"distributed-kv/internal/api"
 	"distributed-kv/internal/store/distributed"
-	"distributed-kv/internal/store/memory"
+	"distributed-kv/internal/store/persisted"
 	internaltls "distributed-kv/internal/tls"
 	"fmt"
 	"log"
@@ -23,8 +23,6 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 )
-
-const leaderWaitTimeout = 60 * time.Second
 
 var (
 	version string
@@ -176,7 +174,11 @@ var app = &cli.App{
 		}
 
 		// Store configuration
-		dstore, err := bootstrapStore(storeOpts)
+		store := persisted.New(dataDir)
+		defer func() {
+			_ = store.Close()
+		}()
+		dstore, err := bootstrapDStore(store, storeOpts)
 		if err != nil {
 			return err
 		}
@@ -230,7 +232,10 @@ var app = &cli.App{
 	},
 }
 
-func bootstrapStore(storeOpts []distributed.StoreOption) (dstore *distributed.Store, err error) {
+func bootstrapDStore(
+	storer distributed.Storer,
+	storeOpts []distributed.StoreOption,
+) (dstore *distributed.Store, err error) {
 	// Bootstrap
 	nodes := initialCluster.Value()
 	if len(nodes) == 0 {
@@ -254,7 +259,7 @@ func bootstrapStore(storeOpts []distributed.StoreOption) (dstore *distributed.St
 		listenPeerAddress,
 		name,
 		advertizedPeers[raft.ServerID(name)],
-		memory.New(),
+		storer,
 		storeOpts...,
 	)
 
@@ -262,23 +267,50 @@ func bootstrapStore(storeOpts []distributed.StoreOption) (dstore *distributed.St
 	if err := dstore.Open(bootstrap); err != nil {
 		return nil, err
 	}
-	if bootstrapNode == name {
-		// Wait raft to elect us as leader
-		id, err := dstore.WaitForLeader(leaderWaitTimeout)
-		if err != nil {
-			return nil, err
-		}
-		slog.Info("node is leader", "id", id)
-
-		// Add the other nodes
-		for id, addr := range advertizedPeers {
-			if id != raft.ServerID(bootstrapNode) { // Ignore self
-				if err := dstore.Join(id, addr); err != nil {
-					return nil, err
+	// Periodically try to join the peers
+	go func() {
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-dstore.ShutdownCh():
+				slog.Error("stopped joining peers due to store shutdown")
+				return
+			case <-ticker.C:
+				leaderAddr, leaderID := dstore.GetLeader()
+				if leaderAddr == "" {
+					slog.Error("no leader")
+					continue
+				}
+				// Not leader
+				if leaderID != raft.ServerID(name) {
+					continue
+				}
+				members, err := dstore.GetServers()
+				if err != nil {
+					slog.Error("failed to get servers", "error", err)
+					continue
+				}
+			peers:
+				for id, addr := range advertizedPeers {
+					// Ignore self
+					if id == raft.ServerID(name) {
+						continue
+					}
+					// Ignore if already member
+					for _, member := range members {
+						if member.ID == id {
+							continue peers
+						}
+					}
+					slog.Info("request peer to join", "id", id, "addr", addr)
+					if err := dstore.Join(id, addr); err != nil {
+						slog.Error("failed to join peer", "id", id, "addr", addr, "error", err)
+					}
 				}
 			}
 		}
-	}
+	}()
 	return dstore, nil
 }
 

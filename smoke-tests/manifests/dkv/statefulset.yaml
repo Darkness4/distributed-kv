@@ -35,6 +35,7 @@ spec:
             - containerPort: 2380
               name: raft
             - containerPort: 3000
+              #hostPort: 30002 # For debugging
               name: http
           env:
             - name: DKV_NAME
@@ -53,12 +54,12 @@ spec:
               value: /etc/dkv/peer-certs/tls.key
             - name: DKV_PEER_TRUSTED_CA_FILE
               value: /etc/dkv/peer-certs/ca.crt
-            - name: DKV_CERT_FILE
-              value: /etc/dkv/certs/tls.crt
-            - name: DKV_KEY_FILE
-              value: /etc/dkv/certs/tls.key
-            - name: DKV_TRUSTED_CA_FILE
-              value: /etc/dkv/certs/ca.crt
+            # - name: DKV_CERT_FILE
+            #   value: /etc/dkv/certs/tls.crt
+            # - name: DKV_KEY_FILE
+            #   value: /etc/dkv/certs/tls.key
+            # - name: DKV_TRUSTED_CA_FILE
+            #   value: /etc/dkv/certs/ca.crt
             - name: DKV_DATA_DIR
               value: /data
           volumeMounts:

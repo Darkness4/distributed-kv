@@ -8,8 +8,8 @@ RUN go mod download
 ARG TARGETOS TARGETARCH VERSION
 COPY . /build/
 
-RUN go generate ./... \
-  && CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -a -ldflags "-s -w -X main.version=${VERSION}" -o /build/dkv ./cmd/dkv/main.go
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -a -ldflags "-s -w -X main.version=${VERSION}" -o /build/dkv ./cmd/dkv/main.go
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -a -ldflags "-s -w -X main.version=${VERSION}" -o /build/dkvctl ./cmd/dkvctl/main.go
 
 # ---
 FROM registry-1.docker.io/library/busybox:1.36.1
@@ -24,7 +24,7 @@ RUN mkdir /app
 RUN addgroup -S app && adduser -S -G app app
 WORKDIR /app
 
-COPY --from=builder /build/dkv .
+COPY --from=builder /build/dkv /build/dkvctl /app/
 
 RUN chown -R app:app .
 USER app

@@ -241,6 +241,10 @@ func (s *Store) Shutdown() error {
 	return nil
 }
 
+func (s *Store) ShutdownCh() <-chan struct{} {
+	return s.shutdownCh
+}
+
 func (s *Store) apply(req *dkvv1.Command) (any, error) {
 	b, err := proto.Marshal(req)
 	if err != nil {

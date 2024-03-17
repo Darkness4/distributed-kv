@@ -2,7 +2,7 @@ package distributed_test
 
 import (
 	"distributed-kv/internal/store/distributed"
-	"distributed-kv/internal/store/memory"
+	"distributed-kv/internal/store/persisted"
 	internaltls "distributed-kv/internal/tls"
 	"fmt"
 	"net"
@@ -43,7 +43,11 @@ func TestStore(t *testing.T) {
 			_ = os.RemoveAll(tmp)
 		})
 		addr := getRandomAddress(t)
-		store := memory.New()
+		store := persisted.New(tmp)
+		t.Cleanup(func() {
+			err = store.Close()
+			require.NoError(t, err)
+		})
 		s := distributed.NewStore(tmp, addr, "node1", raft.ServerAddress(addr), store)
 		t.Cleanup(func() {
 			err = s.Shutdown()
@@ -73,7 +77,11 @@ func TestStore(t *testing.T) {
 				_ = os.RemoveAll(tmp)
 			})
 			addr := getRandomAddress(t)
-			store := memory.New()
+			store := persisted.New(tmp)
+			t.Cleanup(func() {
+				err = store.Close()
+				require.NoError(t, err)
+			})
 			peerServerTLSConfig, err := internaltls.SetupServerTLSConfig(peerCert, peerKey, caCert)
 			require.NoError(t, err)
 			peerClientTLSConfig, err := internaltls.SetupClientTLSConfig(
