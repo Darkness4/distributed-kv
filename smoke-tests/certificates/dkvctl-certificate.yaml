@@ -1,0 +1,22 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: dkvctl-cert
+  namespace: default
+spec:
+  secretName: dkvctl-cert-secret
+  duration: 2160h # 90d
+  renewBefore: 360h # 15d
+  subject:
+    organizations: [My Awesome Company]
+    countries: [FR]
+    organizationalUnits: [IT]
+    localities: [Paris]
+  commonName: dkvctl
+  issuerRef:
+    name: private-cluster-issuer
+    kind: ClusterIssuer
+  usages:
+    - client auth
+    - key encipherment
+    - digital signature
