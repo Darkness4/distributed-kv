@@ -8,6 +8,7 @@
 - Forked `hashicorp/raft` to add:
   - Support for command forwarding to the leader.
   - Proper advertized address for mutual TLS. (`hashicorp/raft` used to output the IP of the server instead of the domain name).
+- No `hashicorp/serf` which sucks for Kubernetes since it uses IPs (container IPs) instead of domain name, meaning that if a pod is rescheduled, the IP changes and the cluster is broken.
 
 ## How to compile and run:
 
