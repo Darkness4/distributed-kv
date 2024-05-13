@@ -2,7 +2,7 @@ module distributed-kv
 
 go 1.22
 
-toolchain go1.22.1
+toolchain go1.22.3
 
 require (
 	connectrpc.com/connect v1.15.0
