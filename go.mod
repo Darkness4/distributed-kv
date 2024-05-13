@@ -7,7 +7,7 @@ toolchain go1.22.3
 require (
 	connectrpc.com/connect v1.15.0
 	github.com/cockroachdb/pebble v1.1.0
-	github.com/hashicorp/go-msgpack/v2 v2.1.1
+	github.com/hashicorp/go-msgpack/v2 v2.1.2
 	github.com/hashicorp/raft v1.6.1
 	github.com/joho/godotenv v1.5.1
 	github.com/lni/goutils v1.4.0
