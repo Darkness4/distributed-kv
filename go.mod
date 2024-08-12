@@ -12,7 +12,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/lni/goutils v1.4.0
 	github.com/stretchr/testify v1.9.0
-	github.com/urfave/cli/v2 v2.27.3
+	github.com/urfave/cli/v2 v2.27.4
 	golang.org/x/net v0.28.0
 	google.golang.org/protobuf v1.34.2
 )
