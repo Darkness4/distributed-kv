@@ -13,7 +13,7 @@ require (
 	github.com/lni/goutils v1.4.0
 	github.com/stretchr/testify v1.9.0
 	github.com/urfave/cli/v2 v2.27.5
-	golang.org/x/net v0.30.0
+	golang.org/x/net v0.31.0
 	google.golang.org/protobuf v1.35.1
 )
 
@@ -58,7 +58,7 @@ require (
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df // indirect
-	golang.org/x/sys v0.26.0 // indirect
-	golang.org/x/text v0.19.0 // indirect
+	golang.org/x/sys v0.27.0 // indirect
+	golang.org/x/text v0.20.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
