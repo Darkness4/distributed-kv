@@ -8,7 +8,7 @@ require (
 	connectrpc.com/connect v1.17.0
 	github.com/cockroachdb/pebble v1.1.2
 	github.com/hashicorp/go-msgpack/v2 v2.1.2
-	github.com/hashicorp/raft v1.7.1
+	github.com/hashicorp/raft v1.7.3
 	github.com/joho/godotenv v1.5.1
 	github.com/lni/goutils v1.4.0
 	github.com/stretchr/testify v1.9.0
