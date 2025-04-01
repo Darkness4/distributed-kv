@@ -61,7 +61,7 @@ func WithWalDirPath(walDir string) Option {
 	})
 }
 
-func WithDbDirPath(dbDir string) Option {
+func WithDBDirPath(dbDir string) Option {
 	return newOption(func(o *options) {
 		o.dir = dbDir
 	})

@@ -19,7 +19,7 @@ import (
 
 	"github.com/hashicorp/raft"
 	"github.com/joho/godotenv"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 )

@@ -104,11 +104,11 @@ func (s *Store) Open(bootstrap bool) error {
 	}
 
 	// Create the log store and stable store.
-	ldb, err := raftpebble.New(raftpebble.WithDbDirPath(filepath.Join(s.RaftDir, "logs.dat")))
+	ldb, err := raftpebble.New(raftpebble.WithDBDirPath(filepath.Join(s.RaftDir, "logs.dat")))
 	if err != nil {
 		return fmt.Errorf("new pebble: %s", err)
 	}
-	sdb, err := raftpebble.New(raftpebble.WithDbDirPath(filepath.Join(s.RaftDir, "stable.dat")))
+	sdb, err := raftpebble.New(raftpebble.WithDBDirPath(filepath.Join(s.RaftDir, "stable.dat")))
 	if err != nil {
 		return fmt.Errorf("new pebble: %s", err)
 	}

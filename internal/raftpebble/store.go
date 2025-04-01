@@ -1,3 +1,4 @@
+// Package raftpebble provides a pebble based LogStore StableStore type.
 package raftpebble
 
 import (
@@ -282,11 +283,11 @@ func (s *PebbleKVStore) StoreLogs(logs []*raft.Log) (err error) {
 }
 
 // DeleteRange deletes logs within a given range inclusively.
-func (s *PebbleKVStore) DeleteRange(min, max uint64) (err error) {
+func (s *PebbleKVStore) DeleteRange(mini, maxi uint64) (err error) {
 	//wo := &pebble.WriteOptions{Sync: true}
 	wo := &pebble.WriteOptions{Sync: false}
-	fk := append(prefixLog, uint64ToBytes(min)...)
-	lk := append(prefixLog, uint64ToBytes(max+1)...)
+	fk := append(prefixLog, uint64ToBytes(mini)...)
+	lk := append(prefixLog, uint64ToBytes(maxi+1)...)
 
 	//return s.deleteRange(fk, lk, wo)
 	return s.db.DeleteRange(fk, lk, wo)

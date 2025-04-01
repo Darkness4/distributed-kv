@@ -32,14 +32,14 @@ func testPebbleKVStore(t testing.TB) (kvStore *PebbleKVStore, walDir, dir string
 	os.RemoveAll(walDir)
 
 	if os.Getenv("mock") == "" {
-		kvStore, err = New(WithDbDirPath(dir))
+		kvStore, err = New(WithDBDirPath(dir))
 	} else {
 		kvStore, err = New(
 			WithConfig(GetDefaultRaftLogRocksDBConfig()),
 			WithLogger(pebble.DefaultLogger),
 			WithFS(vfs.Default),
 			WithWalDirPath(walDir),
-			WithDbDirPath(dir),
+			WithDBDirPath(dir),
 			WithLogDBCallback(mockCallBack),
 			WithPebbleOptions(nil),
 		)

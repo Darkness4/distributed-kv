@@ -38,7 +38,7 @@ func (s *Store) Delete(key string) error {
 
 func (s *Store) Dump() map[string]string {
 	data := make(map[string]string)
-	iter, err := s.DB.NewIter(nil)
+	iter, err := s.NewIter(nil)
 	if err != nil {
 		panic(err)
 	}
@@ -50,7 +50,7 @@ func (s *Store) Dump() map[string]string {
 }
 
 func (s *Store) Clear() {
-	iter, err := s.DB.NewIter(nil)
+	iter, err := s.NewIter(nil)
 	if err != nil {
 		panic(err)
 	}

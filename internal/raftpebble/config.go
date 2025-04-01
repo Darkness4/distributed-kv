@@ -8,8 +8,7 @@ const (
 	defaultLogDBShards uint64 = 1
 )
 
-// RaftLogRocksDBConfig
-// pebble add sst block lru cache for read
+// RaftLogRocksDBConfig pebble add sst block lru cache for read
 // others more detail see rocksdb guid wiki
 type RaftLogRocksDBConfig struct {
 	Shards                             uint64
