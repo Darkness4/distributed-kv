@@ -6,7 +6,7 @@ toolchain go1.23.3
 
 require (
 	connectrpc.com/connect v1.17.0
-	github.com/cockroachdb/pebble v1.1.2
+	github.com/cockroachdb/pebble v1.1.5
 	github.com/hashicorp/go-msgpack/v2 v2.1.2
 	github.com/hashicorp/raft v1.7.1
 	github.com/joho/godotenv v1.5.1
@@ -46,13 +46,13 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
-	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
+	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/prometheus/client_golang v1.12.0 // indirect
-	github.com/prometheus/client_model v0.2.1-0.20210607210712-147c58e9608a // indirect
-	github.com/prometheus/common v0.32.1 // indirect
-	github.com/prometheus/procfs v0.7.3 // indirect
+	github.com/prometheus/client_golang v1.15.0 // indirect
+	github.com/prometheus/client_model v0.3.0 // indirect
+	github.com/prometheus/common v0.42.0 // indirect
+	github.com/prometheus/procfs v0.9.0 // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
