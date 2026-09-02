@@ -11,8 +11,8 @@ require (
 	github.com/hashicorp/raft v1.7.3
 	github.com/joho/godotenv v1.5.1
 	github.com/lni/goutils v1.4.0
-	github.com/stretchr/testify v1.10.0
-	github.com/urfave/cli/v3 v3.1.1
+	github.com/stretchr/testify v1.11.1
+	github.com/urfave/cli/v3 v3.11.0
 	golang.org/x/net v0.38.0
 	google.golang.org/protobuf v1.36.6
 )
