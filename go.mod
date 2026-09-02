@@ -1,8 +1,6 @@
 module distributed-kv
 
-go 1.23.0
-
-toolchain go1.24.1
+go 1.25.0
 
 require (
 	connectrpc.com/connect v1.18.1
@@ -13,7 +11,7 @@ require (
 	github.com/lni/goutils v1.4.0
 	github.com/stretchr/testify v1.10.0
 	github.com/urfave/cli/v3 v3.1.1
-	golang.org/x/net v0.38.0
+	golang.org/x/net v0.58.0
 	google.golang.org/protobuf v1.36.6
 )
 
@@ -54,7 +52,7 @@ require (
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
-	golang.org/x/sys v0.31.0 // indirect
-	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/text v0.41.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
