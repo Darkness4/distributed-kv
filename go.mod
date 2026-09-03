@@ -14,7 +14,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/urfave/cli/v3 v3.1.1
 	golang.org/x/net v0.38.0
-	google.golang.org/protobuf v1.36.6
+	google.golang.org/protobuf v1.36.12
 )
 
 replace github.com/hashicorp/raft => github.com/darkness4/raft v1.6.3
