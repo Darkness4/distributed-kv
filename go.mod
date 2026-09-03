@@ -1,11 +1,9 @@
 module distributed-kv
 
-go 1.23.0
-
-toolchain go1.24.1
+go 1.25.0
 
 require (
-	connectrpc.com/connect v1.18.1
+	connectrpc.com/connect v1.20.0
 	github.com/cockroachdb/pebble v1.1.5
 	github.com/hashicorp/go-msgpack/v2 v2.1.3
 	github.com/hashicorp/raft v1.7.3
@@ -14,7 +12,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/urfave/cli/v3 v3.1.1
 	golang.org/x/net v0.38.0
-	google.golang.org/protobuf v1.36.6
+	google.golang.org/protobuf v1.36.11
 )
 
 replace github.com/hashicorp/raft => github.com/darkness4/raft v1.6.3
