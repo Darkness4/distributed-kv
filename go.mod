@@ -11,7 +11,7 @@ require (
 	github.com/hashicorp/raft v1.7.3
 	github.com/joho/godotenv v1.5.1
 	github.com/lni/goutils v1.4.0
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.12.1
 	github.com/urfave/cli/v3 v3.1.1
 	golang.org/x/net v0.38.0
 	google.golang.org/protobuf v1.36.6
@@ -52,7 +52,8 @@ require (
 	github.com/prometheus/common v0.63.0 // indirect
 	github.com/prometheus/procfs v0.16.0 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
-	github.com/stretchr/objx v0.5.2 // indirect
+	github.com/stretchr/objx v0.5.3 // indirect
+	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
